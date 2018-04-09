@@ -1,0 +1,27 @@
+{
+	"name": "lekoala/silverstripe-encrypt",
+	"description": "Encrypt data extension for SilverStripe",
+	"type": "silverstripe-module",
+	"keywords": [
+		"silverstripe",
+		"encrypt",
+		"module"
+	],
+	"license": "MIT",
+	"authors": [{
+		"name": "LeKoala",
+		"email": "thomas@lekoala.be"
+	}],
+	"require": {
+		"php": ">=5.6",
+		"silverstripe/framework": "~3.6",
+		"tuupola/base62": "^0.9.0",
+		"paragonie/sodium_compat": "^1.6"
+	},
+	"extra": {
+		"installer-name": "encrypt"
+	},
+	"support": {
+		"issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
+	}
+}
