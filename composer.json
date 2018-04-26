@@ -33,5 +33,7 @@
 	},
 	"support": {
 		"issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
-	}
+	},
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
