@@ -1,6 +1,8 @@
 <?php
 
 use Tuupola\Base62Proxy;
+use SilverStripe\Control\Director;
+
 
 /**
  * @link https://paragonie.com/blog/2017/05/building-searchable-encrypted-databases-with-php-and-sql
