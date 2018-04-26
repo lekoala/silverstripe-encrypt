@@ -1,6 +1,8 @@
 <?php
 namespace LeKoala\SilverStripeEncrypt\Tests;
 
+use LeKoala\SilverStripeEncrypt\DBEncryptedHTMLText;
+use LeKoala\SilverStripeEncrypt\DBEncryptedText;
 use LeKoala\SilverStripeEncrypt\EncryptHelper;
 use SilverStripe\ORM\DB;
 use SilverStripe\Dev\SapphireTest;
