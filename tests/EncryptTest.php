@@ -21,7 +21,7 @@ use SilverStripe\Dev\TestOnly;
 class EncryptTest extends SapphireTest
 {
     protected $extraDataObjects = array(
-        'EncryptedModel'
+        'LeKoala\SilverStripeEncrypt\Tests\EncryptedModel'
     );
 
     public function testEncryptionWorks()
