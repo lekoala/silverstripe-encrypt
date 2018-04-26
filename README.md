@@ -1,5 +1,23 @@
 SilverStripe Encrypt module
 ==================
+[![Build Status](https://travis-ci.org/gordonbanderson/silverstripe-encrypt.svg?branch=upgradess4)](https://travis-ci.org/gordonbanderson/silverstripe-encrypt)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/gordonbanderson/silverstripe-encrypt/badges/quality-score.png?b=upgradess4)](https://scrutinizer-ci.com/g/gordonbanderson/silverstripe-encrypt/?branch=upgradess4)
+[![Code Coverage](https://scrutinizer-ci.com/g/gordonbanderson/silverstripe-encrypt/badges/coverage.png?b=upgradess4)](https://scrutinizer-ci.com/g/gordonbanderson/silverstripe-encrypt/?branch=upgradess4)
+[![Build Status](https://scrutinizer-ci.com/g/gordonbanderson/silverstripe-encrypt/badges/build.png?b=upgradess4)](https://scrutinizer-ci.com/g/gordonbanderson/silverstripe-encrypt/build-status/upgradess4)
+[![codecov.io](https://codecov.io/github/gordonbanderson/silverstripe-encrypt/coverage.svg?branch=upgradess4)](https://codecov.io/github/gordonbanderson/silverstripe-encrypt?branch=upgradess4)
+
+[![Latest Stable Version](https://poser.pugx.org/lekoala/silverstripe-encrypt/version)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Latest Unstable Version](https://poser.pugx.org/lekoala/silverstripe-encrypt/v/unstable)](//packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Total Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/downloads)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![License](https://poser.pugx.org/lekoala/silverstripe-encrypt/license)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Monthly Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/d/monthly)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Daily Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/d/daily)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+
+[![Dependency Status](https://www.versioneye.com/php/lekoala:silverstripe-encrypt/badge.svg)](https://www.versioneye.com/php/lekoala:silverstripe-encrypt)
+[![Reference Status](https://www.versioneye.com/php/lekoala:silverstripe-encrypt/reference_badge.svg?style=flat)](https://www.versioneye.com/php/lekoala:silverstripe-encrypt/references)
+
+![codecov.io](https://codecov.io/github/gordonbanderson/silverstripe-encrypt/branch.svg?branch=upgradess4)
+
 
 Easily add encryption to your DataObjects
 
