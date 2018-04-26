@@ -39,7 +39,7 @@ class EncryptTest extends SapphireTest
     {
         $model = new EncryptedModel;
 
-        $singl = singleton('EncryptedModel');
+        $singl = singleton('LeKoala\SilverStripeEncrypt\Tests\EncryptedModel');
 
         $someText = 'some text';
         $model->EncryptedText = $someText;
@@ -60,7 +60,6 @@ class EncryptTest extends SapphireTest
 
 class EncryptedModel extends DataObject implements TestOnly
 {
-
     private static $db = [
         "EncryptedText" => DBEncryptedText::class,
         "EncryptedHTMLText" => DBEncryptedHTMLText::class,
