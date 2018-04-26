@@ -42,7 +42,7 @@ You can also define the key as a constant, like
 
 Compatibility
 ==================
-Tested with 3.6
+Tested with 4.1
 
 Maintainer
 ==================
