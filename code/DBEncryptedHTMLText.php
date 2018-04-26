@@ -1,4 +1,5 @@
 <?php
+namespace LeKoala\SilverStripeEncrypt;
 
 /**
  * Encrypted HTMLText

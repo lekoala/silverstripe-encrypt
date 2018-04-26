@@ -1,4 +1,5 @@
 <?php
+namespace LeKoala\SilverStripeEncrypt;
 
 use Tuupola\Base62Proxy;
 use SilverStripe\Control\Director;

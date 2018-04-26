@@ -1,5 +1,7 @@
 <?php
+namespace LeKoala\SilverStripeEncrypt\Tests;
 
+use LeKoala\SilverStripeEncrypt\EncryptHelper;
 use SilverStripe\ORM\DB;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataObject;
@@ -21,6 +23,7 @@ class EncryptTest extends SapphireTest
     protected $extraDataObjects = array(
         'EncryptedModel'
     );
+
     public function testEncryptionWorks()
     {
         $someText = 'some text';
@@ -31,6 +34,7 @@ class EncryptTest extends SapphireTest
 
         $this->assertEquals($someText, $decryptedValue);
     }
+
     public function testRecordIsEncrypted()
     {
         $model = new EncryptedModel;
