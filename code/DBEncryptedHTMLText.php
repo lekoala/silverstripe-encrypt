@@ -1,12 +1,13 @@
 <?php
 namespace LeKoala\SilverStripeEncrypt;
+use SilverStripe\ORM\FieldType\DBHTMLText;
 
 /**
  * Encrypted HTMLText
  *
  * @link https://github.com/paragonie/sodium_compat
  */
-class DBEncryptedHTMLText extends HTMLText
+class DBEncryptedHTMLText extends DBHTMLText
 {
     public function prepValueForDB($value)
     {
@@ -20,7 +21,7 @@ class DBEncryptedHTMLText extends HTMLText
         return $encryptedValue['binary_value'];
     }
 
-    public function setValue($value, $record = null)
+    public function setValue($value, $record = null, $markChanged = true)
     {
         if ($value && EncryptHelper::isHexadecimal($value)) {
             $this->value = EncryptHelper::decryptBinaryValue($value);
