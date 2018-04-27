@@ -1,7 +1,7 @@
 <?php
 namespace LeKoala\SilverStripeEncrypt;
 
-use League\Flysystem\Config;
+use SilverStripe\Core\Config\Config;
 use Tuupola\Base62Proxy;
 use SilverStripe\Control\Director;
 
@@ -28,7 +28,7 @@ class EncryptHelper
         $relativePath = Config::inst()->get('LeKoala\SilverStripeEncrypt\EncryptHelper', 'secret_key_path');
         $keyPath = Director::baseFolder() . $relativePath;
         echo 'KEYPATH: ' . $keyPath;
-        
+
         if (is_file($keyPath)) {
             $raw = file_get_contents($keyPath);
             $key = Base62Proxy::decode($raw);
