@@ -26,7 +26,7 @@ class EncryptHelper
 
         // Generate the key for this server
         $relativePath = Config::inst()->get('LeKoala\SilverStripeEncrypt\EncryptHelper', 'secret_key_path');
-        $keyPath = Director::baseFolder() . $relativePath;
+        $keyPath = Director::baseFolder() . '/' . $relativePath;
         echo 'KEYPATH: ' . $keyPath;
 
         if (is_file($keyPath)) {
