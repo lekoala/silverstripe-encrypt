@@ -19,9 +19,10 @@ class EncryptHelper
      */
     public static function getKey()
     {
-        // A base62 decoded key
-        if (defined('ENCRYPT_SHARED_KEY')) {
-            return ENCRYPT_SHARED_KEY;
+        // look for the shared key in the config file
+        $sharedKey = Config::inst()->get('LeKoala\SilverStripeEncrypt\EncryptHelper', 'encrypted_shared_key');
+        if (!empty($sharedKey)){
+            return $sharedKey;
         }
 
         // Generate the key for this server
