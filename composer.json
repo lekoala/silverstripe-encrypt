@@ -13,7 +13,7 @@
 		"email": "thomas@lekoala.be"
 	}],
 	"require": {
-        "php" : "~5.6|~7.0",
+        "php" : "~7",
         "silverstripe/framework": "^4.1",
 		"tuupola/base62": "^0.10.0",
 		"paragonie/sodium_compat": "^1.6"
