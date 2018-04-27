@@ -58,6 +58,7 @@ class EncryptTest extends SapphireTest
         // In the db, it's not the same
         // TODO: this is not working because somehow the schema is not configured properly by SilverStripe
 
+        echo '--- Checking database table ----';
         $tableName = DataObject::getSchema()->tableName(EncryptedModel::class);
         $columnIdentifier = DataObject::getSchema()->sqlColumnForField(EncryptedModel::class, 'ID');
         $sql = new SQLSelect('*', [$tableName], [$columnIdentifier => $model->ID]);
