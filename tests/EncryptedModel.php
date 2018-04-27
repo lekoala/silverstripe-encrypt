@@ -15,6 +15,8 @@ use SilverStripe\ORM\DataObject;
 
 class EncryptedModel extends DataObject implements TestOnly
 {
+    private static $table_name = 'EncryptedModel';
+    
     private static $db = [
         "EncryptedText" => DBEncryptedText::class,
         "EncryptedHTMLText" => DBEncryptedHTMLText::class,

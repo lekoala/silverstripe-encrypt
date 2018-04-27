@@ -22,9 +22,11 @@ use SilverStripe\Dev\TestOnly;
  */
 class EncryptTest extends SapphireTest
 {
-    protected $extraDataObjects = array(
+    protected static $extra_dataobjects = [
         'LeKoala\SilverStripeEncrypt\Tests\EncryptedModel'
-    );
+    ];
+
+
 
     public function testEncryptionWorks()
     {
@@ -39,6 +41,8 @@ class EncryptTest extends SapphireTest
 
     public function testRecordIsEncrypted()
     {
+        $result = DB::query('show tables');
+        print_r($result, 1);
         $model = new EncryptedModel();
 
         $someText = 'some text';
