@@ -61,7 +61,7 @@ class EncryptTest extends SapphireTest
         $tableName = DataObject::getSchema()->tableName(EncryptedModel::class);
         $columnIdentifier = DataObject::getSchema()->sqlColumnForField(EncryptedModel::class, 'ID');
         $sql = new SQLSelect('*', [$tableName], [$columnIdentifier => $model->ID]);
-        $dbRecord = $sql->execute()->firstRow();
+        $dbRecord = $sql->firstRow()->execute()->first();
         print_r($dbRecord);
         $text = isset($dbRecord['EncryptedText']) ? $dbRecord['EncryptedText'] : null;
         $this->assertNotEmpty($text);
