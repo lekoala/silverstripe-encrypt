@@ -41,8 +41,6 @@ class EncryptTest extends SapphireTest
 
     public function testRecordIsEncrypted()
     {
-        $result = DB::query('show tables');
-        print_r($result, 1);
         $model = new EncryptedModel();
 
         $someText = 'some text';
