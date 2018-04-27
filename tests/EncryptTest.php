@@ -44,18 +44,21 @@ class EncryptTest extends SapphireTest
         $model = new EncryptedModel();
 
         $someText = 'some text';
-        $model->EncryptedText = $someText;
-        $ID = $model->write();
+        $model->EncryptedText = $someText .' text';
+        $model->EncryptedHTMLText = $someText .' html';
+        $id = $model->write();
 
-        $this->assertNotEmpty($ID);
+        $this->assertNotEmpty($id);
+
         // For the model, its the same
-        $this->assertEquals($model->EncryptedText, $someText);
+        $this->assertEquals($model->EncryptedText, $someText .' text');
+        $this->assertEquals($model->EncryptedHTMLText, $someText .' html');
 
         // In the db, it's not the same
         // TODO: this is not working because somehow the schema is not configured properly by SilverStripe
         $dbRecord = DB::query("SELECT * FROM EncryptedModel WHERE ID = " . $model->ID)->record();
         $text = isset($dbRecord['EncryptedText']) ? $dbRecord['EncryptedText'] : null;
-        // $this->assertNotEmpty($text);
-        // $this->assertNotEquals($text, $someText);
+        $this->assertNotEmpty($text);
+        $this->assertNotEquals($text, $someText);
     }
 }
