@@ -38,7 +38,7 @@ class EncryptHelper
             $key = random_bytes(\Sodium\CRYPTO_AUTH_KEYBYTES);
             file_put_contents($keyPath, Base62Proxy::encode($key));
         }
-        
+
         return $key;
     }
 
