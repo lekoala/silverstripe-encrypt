@@ -39,9 +39,7 @@ class EncryptTest extends SapphireTest
 
     public function testRecordIsEncrypted()
     {
-        $model = new EncryptedModel;
-
-        $singl = singleton('LeKoala\SilverStripeEncrypt\Tests\EncryptedModel');
+        $model = new EncryptedModel();
 
         $someText = 'some text';
         $model->EncryptedText = $someText;
@@ -58,12 +56,4 @@ class EncryptTest extends SapphireTest
         // $this->assertNotEmpty($text);
         // $this->assertNotEquals($text, $someText);
     }
-}
-
-class EncryptedModel extends DataObject implements TestOnly
-{
-    private static $db = [
-        "EncryptedText" => DBEncryptedText::class,
-        "EncryptedHTMLText" => DBEncryptedHTMLText::class,
-    ];
 }
