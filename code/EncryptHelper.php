@@ -22,11 +22,13 @@ class EncryptHelper
         // look for the shared key in the config file
         $sharedKey = Config::inst()->get('LeKoala\SilverStripeEncrypt\EncryptHelper', 'encrypted_shared_key');
         if (!empty($sharedKey)){
+            $sharedKey = Base62Proxy::decode($sharedKey);
             return $sharedKey;
         }
 
         // Generate the key for this server
         $relativePath = Config::inst()->get('LeKoala\SilverStripeEncrypt\EncryptHelper', 'secret_key_path');
+
         $keyPath = Director::baseFolder() . '/' . $relativePath;
 
         if (is_file($keyPath)) {
@@ -36,7 +38,7 @@ class EncryptHelper
             $key = random_bytes(\Sodium\CRYPTO_AUTH_KEYBYTES);
             file_put_contents($keyPath, Base62Proxy::encode($key));
         }
-
+        
         return $key;
     }
 
