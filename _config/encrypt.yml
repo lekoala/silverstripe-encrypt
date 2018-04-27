@@ -1,0 +1,7 @@
+---
+Name: silverstripeencrypt
+---
+
+#This is the path relative to the base folder than the key is stored.  By default it is outside the site root
+LeKoala\SilverStripeEncrypt\EncryptHelper:
+  secret_key_path: ../.secret_key
