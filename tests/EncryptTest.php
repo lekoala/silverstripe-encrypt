@@ -1,4 +1,14 @@
 <?php
+namespace LeKoala\SilverStripeEncrypt\Tests;
+
+use LeKoala\SilverStripeEncrypt\DBEncryptedHTMLText;
+use LeKoala\SilverStripeEncrypt\DBEncryptedText;
+use LeKoala\SilverStripeEncrypt\EncryptHelper;
+use SilverStripe\ORM\DB;
+use SilverStripe\Dev\SapphireTest;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Dev\TestOnly;
+use SilverStripe\ORM\Queries\SQLSelect;
 
 /**
  * Test for Encrypt
@@ -13,48 +23,49 @@
  */
 class EncryptTest extends SapphireTest
 {
-	protected $extraDataObjects = array(
-		'EncryptedModel'
-	);
-	public function testEncryptionWorks()
-	{
-		$someText = 'some text';
+    protected static $extra_dataobjects = [
+        'LeKoala\SilverStripeEncrypt\Tests\EncryptedModel'
+    ];
 
-		$encrypt = EncryptHelper::encryptValue($someText);
 
-		$decryptedValue = EncryptHelper::decryptBinaryValue($encrypt['binary_value']);
 
-		$this->assertEquals($someText, $decryptedValue);
-	}
-	public function testRecordIsEncrypted()
-	{
-		$model = new EncryptedModel;
+    public function testEncryptionWorks()
+    {
+        $someText = 'some text';
 
-		$singl = singleton('EncryptedModel');
+        $encrypt = EncryptHelper::encryptValue($someText);
 
-		$someText = 'some text';
-		$model->EncryptedText = $someText;
-		$ID = $model->write();
+        $decryptedValue = EncryptHelper::decryptBinaryValue($encrypt['binary_value']);
 
-		$this->assertNotEmpty($ID);
-		// For the model, its the same
-		$this->assertEquals($model->EncryptedText, $someText);
+        $this->assertEquals($someText, $decryptedValue);
+    }
 
-		// In the db, it's not the same
-		// TODO: this is not working because somehow the schema is not configured properly by SilverStripe
-		$dbRecord = DB::query("SELECT * FROM EncryptedModel WHERE ID = " . $model->ID)->record();
-		$text = isset($dbRecord['EncryptedText']) ? $dbRecord['EncryptedText'] : null;
-		// $this->assertNotEmpty($text);
-		// $this->assertNotEquals($text, $someText);
-	}
-}
+    public function testRecordIsEncrypted()
+    {
+        $model = new EncryptedModel();
 
-class EncryptedModel extends DataObject implements TestOnly
-{
+        $someText = 'some text';
+        $model->EncryptedText = $someText .' text';
+        $model->EncryptedHTMLText = $someText .' html';
+        $id = $model->write();
 
-	private static $db = [
-		"EncryptedText" => DBEncryptedText::class,
-		"EncryptedHTMLText" => DBEncryptedHTMLText::class,
-	];
+        $this->assertNotEmpty($id);
 
+        // For the model, its the same
+        $this->assertEquals($model->EncryptedText, $someText .' text');
+        $this->assertEquals($model->EncryptedHTMLText, $someText .' html');
+
+        // In the db, it's not the same
+        // TODO: this is not working because somehow the schema is not configured properly by SilverStripe
+
+        echo '--- Checking database table ----';
+        $tableName = DataObject::getSchema()->tableName(EncryptedModel::class);
+        $columnIdentifier = DataObject::getSchema()->sqlColumnForField(EncryptedModel::class, 'ID');
+        $sql = new SQLSelect('*', [$tableName], [$columnIdentifier => $model->ID]);
+        $dbRecord = $sql->firstRow()->execute()->first();
+        print_r($dbRecord);
+        $text = isset($dbRecord['EncryptedText']) ? $dbRecord['EncryptedText'] : null;
+        $this->assertNotEmpty($text);
+        $this->assertNotEquals($text, $someText);
+    }
 }
