@@ -26,8 +26,8 @@ corresponding DBEncryptedText or DBEncryptedHTMLText.
 
 TODO:
 - Add easily searchable encrypted text
-
-Note: version for SilverStripe 4 coming soon!
+- Provide varchar field
+- Make sure tests work with pgsql
 
 Security
 ==================

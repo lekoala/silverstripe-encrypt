@@ -21,7 +21,7 @@ class EncryptHelper
     {
         // look for the shared key in the config file
         $sharedKey = Config::inst()->get('LeKoala\SilverStripeEncrypt\EncryptHelper', 'encrypted_shared_key');
-        if (!empty($sharedKey)){
+        if (!empty($sharedKey)) {
             $sharedKey = Base62Proxy::decode($sharedKey);
             return $sharedKey;
         }

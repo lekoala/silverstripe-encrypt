@@ -1,5 +1,6 @@
 <?php
 namespace LeKoala\SilverStripeEncrypt;
+
 use SilverStripe\ORM\FieldType\DBHTMLText;
 
 /**

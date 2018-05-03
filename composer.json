@@ -1,23 +1,23 @@
 {
-	"name": "lekoala/silverstripe-encrypt",
-	"description": "Encrypt data extension for SilverStripe",
-	"type": "silverstripe-module",
-	"keywords": [
-		"silverstripe",
-		"encrypt",
-		"module"
-	],
-	"license": "MIT",
-	"authors": [{
-		"name": "LeKoala",
-		"email": "thomas@lekoala.be"
-	}],
-	"require": {
-        "php" : "~7",
+    "name": "lekoala/silverstripe-encrypt",
+    "description": "Encrypt data extension for SilverStripe",
+    "type": "silverstripe-module",
+    "keywords": [
+        "silverstripe",
+        "encrypt",
+        "module"
+    ],
+    "license": "MIT",
+    "authors": [{
+        "name": "LeKoala",
+        "email": "thomas@lekoala.be"
+    }],
+    "require": {
+        "php": "~7",
         "silverstripe/framework": "^4.1",
-		"tuupola/base62": "^0.10.0",
-		"paragonie/sodium_compat": "^1.6"
-	},
+        "tuupola/base62": "^0.10.0",
+        "paragonie/sodium_compat": "^1.6"
+    },
     "require-dev": {
         "phpunit/phpunit": "^5.7",
         "squizlabs/php_codesniffer": "^2.3"
@@ -28,12 +28,17 @@
             "LeKoala\\SilverStripeEncrypt\\Tests\\": "tests/"
         }
     },
-	"extra": {
-		"installer-name": "encrypt"
-	},
-	"support": {
-		"issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
-	},
+    "extra": {
+        "installer-name": "encrypt"
+    },
+    "support": {
+        "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
+    },
+    "scripts": {
+        "lint": "phpcs code/ tests/",
+        "lint-clean": "phpcbf code/ tests/",
+        "test": "phpunit -v"
+    },
     "minimum-stability": "dev",
     "prefer-stable": true
 }
