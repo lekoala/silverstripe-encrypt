@@ -28,6 +28,7 @@ TODO:
 - Add easily searchable encrypted text
 - Provide varchar field
 - Make sure tests work with pgsql
+- Investigate usage of [ciphersweet](https://github.com/paragonie/ciphersweet)
 
 Security
 ==================
