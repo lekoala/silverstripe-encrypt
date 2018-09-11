@@ -13,9 +13,6 @@ SilverStripe Encrypt module
 [![Monthly Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/d/monthly)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
 [![Daily Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/d/daily)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
 
-[![Dependency Status](https://www.versioneye.com/php/lekoala:silverstripe-encrypt/badge.svg)](https://www.versioneye.com/php/lekoala:silverstripe-encrypt)
-[![Reference Status](https://www.versioneye.com/php/lekoala:silverstripe-encrypt/reference_badge.svg?style=flat)](https://www.versioneye.com/php/lekoala:silverstripe-encrypt/references)
-
 ![codecov.io](https://codecov.io/github/lekoala/silverstripe-encrypt/branch.svg?branch=master)
 
 
