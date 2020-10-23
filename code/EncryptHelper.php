@@ -111,6 +111,9 @@ class EncryptHelper
 
     public static function isHexadecimal($value)
     {
+        if(!is_string($value)) {
+            return false;
+        }
         return ctype_xdigit($value);
     }
 }
