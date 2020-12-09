@@ -3,6 +3,9 @@
         <directory>tests/</directory>
     </testsuite>
 
+    <file>code</file>
+    <file>tests</file>
+
     <filter>
         <whitelist addUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">src/</directory>

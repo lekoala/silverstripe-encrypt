@@ -1,13 +1,10 @@
 <?php
+
 namespace LeKoala\SilverStripeEncrypt\Tests;
 
-use LeKoala\SilverStripeEncrypt\DBEncryptedHTMLText;
-use LeKoala\SilverStripeEncrypt\DBEncryptedText;
 use LeKoala\SilverStripeEncrypt\EncryptHelper;
-use SilverStripe\ORM\DB;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\ORM\DataObject;
-use SilverStripe\Dev\TestOnly;
 use SilverStripe\ORM\Queries\SQLSelect;
 
 /**
@@ -27,8 +24,6 @@ class EncryptTest extends SapphireTest
         'LeKoala\SilverStripeEncrypt\Tests\EncryptedModel'
     ];
 
-
-
     public function testEncryptionWorks()
     {
         $someText = 'some text';
@@ -45,15 +40,15 @@ class EncryptTest extends SapphireTest
         $model = new EncryptedModel();
 
         $someText = 'some text';
-        $model->EncryptedText = $someText .' text';
-        $model->EncryptedHTMLText = $someText .' html';
+        $model->EncryptedText = $someText . ' text';
+        $model->EncryptedHTMLText = $someText . ' html';
         $id = $model->write();
 
         $this->assertNotEmpty($id);
 
         // For the model, its the same
-        $this->assertEquals($model->EncryptedText, $someText .' text');
-        $this->assertEquals($model->EncryptedHTMLText, $someText .' html');
+        $this->assertEquals($model->EncryptedText, $someText . ' text');
+        $this->assertEquals($model->EncryptedHTMLText, $someText . ' html');
 
         // In the db, it's not the same
         // TODO: this is not working because somehow the schema is not configured properly by SilverStripe
