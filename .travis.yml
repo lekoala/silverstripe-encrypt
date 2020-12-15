@@ -3,7 +3,7 @@ language: php
 os: linux
 
 # https://github.com/travis-ci/travis-ci/issues/8863
-dist: trusty
+dist: xenial
 
 services:
   - mysql
@@ -43,8 +43,9 @@ before_script:
   - composer --version
 
   # SODIUM
+  # - sudo apt-get install libsodium-dev
   # - sudo pecl install -f libsodium
-  - echo "extension = sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - echo "extension = libsodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   # PHPENV
   - phpenv rehash
