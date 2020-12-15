@@ -1,7 +1,31 @@
 ---
-Name: silverstripeencrypt
+Name: encrypt
 ---
-
-#This is the path relative to the base folder than the key is stored.  By default it is outside the site root
-LeKoala\SilverStripeEncrypt\EncryptHelper:
-  secret_key_path: .secret_key
+SilverStripe\Assets\File:
+  extensions:
+    - LeKoala\Encrypt\EncryptedDBFile
+---
+Name: encrypt-fieldtypes
+After: '#corefieldtypes'
+---
+SilverStripe\Core\Injector\Injector:
+  DBBlindIndex:
+    class: LeKoala\Encrypt\DBBlindIndex
+  EncryptedDBField:
+    class: LeKoala\Encrypt\EncryptedDBField
+  EncryptedNumberField:
+    class: LeKoala\Encrypt\EncryptedNumberField
+  EncryptedDBText:
+    class: LeKoala\Encrypt\EncryptedDBText
+  EncryptedDBVarchar:
+    class: LeKoala\Encrypt\EncryptedDBVarchar
+  EncryptedDBHTMLText:
+    class: LeKoala\Encrypt\EncryptedDBHTMLText
+---
+Name: encrypt-searchfilters
+After: '#coresearchfilters'
+---
+SilverStripe\Core\Injector\Injector:
+  DataListFilter.Encrypted:
+    class: LeKoala\Encrypt\EncryptedSearchFilter
+  EncryptedSearchFilter: '%$DataListFilter.Encrypted'

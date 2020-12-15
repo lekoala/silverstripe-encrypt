@@ -1,0 +1,39 @@
+'SilverStripe\Security\Member':
+  admin:
+    Email: admin@test.com
+'SilverStripe\Assets\Folder':
+  uploads:
+    Title: Uploads
+'SilverStripe\Assets\File':
+  regular:
+    Encrypted: 0
+    Created: '2015-08-19 00:00:00'
+    LastUpdated: '2015-08-27 00:00:00'
+    Owner: =>SilverStripe\Security\Member.admin
+    Parent: =>SilverStripe\Assets\Folder.uploads
+    Name: public.doc
+    Title: A regular file
+  encrypted:
+    Encrypted: 1
+    Created: '2015-08-19 00:00:00'
+    LastUpdated: '2015-08-27 00:00:00'
+    Owner: =>SilverStripe\Security\Member.admin
+    Parent: =>SilverStripe\Assets\Folder.uploads
+    Name: secret.doc
+    Title: A secret file
+'LeKoala\Encrypt\Test\Test_EncryptedModel':
+  demo:
+    Name: demo
+    MyVarcharDecrypted: 'encrypted varchar value'
+    MyText: 'nacl:nYemK31JCP4OV8_zTItnLxI6RbrZ0iFadSv-mHNPO-et1rN15ElwOTMGuDTGX-57A9rW2zDN'
+    MyHTMLText: 'nacl:85v7uUqHjwlCRpS5Khbjspg8xruFhCnuYFLenTG2h4iDV-7EaOfwIv01t4iQLZmnvhqOz8O-jiCPFBZTQQ=='
+    MyVarchar: 'nacl:efSeE2GFCzYuRBeOejZAcArqqTYDR0Ez9geqScIBT2D1oGNCDK-HyqGIYmZiOSn_n3uuL5GSpK-1dCwfO_Oo'
+    MyIndexedVarcharValueDecrypted: 'some_searchable_value'
+    MyIndexedVarcharValue: 'nacl:F-q5OUdxjK77sxrGM6Q8BzQ3lDbiDwM9VxOUchcrlDXmgzUwhb0ADQsrxRlbyZnCG4q3nRlJ2cVHRLskVA=='
+    MyIndexedVarcharBlindIndex: '216d113a'
+    MyNumberValueDecrypted: '0123456789'
+    MyNumberValue: 'nacl:tKXzRBnsEfdJVcCouNIvRYQlt5dPQrZk4_PvpdyEUkrN6gWdDzxJxwD6VDKgjQeKamo='
+    MyNumberBlindIndex: 'a1de44f9'
+    MyNumberLastFourBlindIndex: 'addb'
+    RegularFileID: =>SilverStripe\Assets\File.regular
+    EncryptedFileID: =>SilverStripe\Assets\File.encrypted

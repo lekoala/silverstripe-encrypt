@@ -1,44 +1,49 @@
 {
-    "name": "lekoala/silverstripe-encrypt",
-    "description": "Encrypt data extension for SilverStripe",
-    "type": "silverstripe-vendormodule",
-    "keywords": [
-        "silverstripe",
-        "encrypt",
-        "module"
-    ],
-    "license": "MIT",
-    "authors": [{
-        "name": "LeKoala",
-        "email": "thomas@lekoala.be"
-    }],
-    "require": {
-        "php": "~7",
-        "silverstripe/framework": "^4.1",
-        "tuupola/base62": "^0.10.0",
-        "paragonie/sodium_compat": "^1.6"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^5.7",
-        "squizlabs/php_codesniffer": "^2.3"
-    },
-    "autoload": {
-        "psr-4": {
-            "LeKoala\\SilverStripeEncrypt\\": "src/",
-            "LeKoala\\SilverStripeEncrypt\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "installer-name": "encrypt"
-    },
-    "support": {
-        "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
-    },
-    "scripts": {
-        "lint": "phpcs code/ tests/",
-        "lint-clean": "phpcbf code/ tests/",
-        "test": "phpunit -v"
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+  "name": "lekoala/silverstripe-encrypt",
+  "description": "Encrypt data extension for SilverStripe",
+  "type": "silverstripe-vendormodule",
+  "keywords": [
+    "silverstripe",
+    "encrypt",
+    "ciphersweet",
+    "security",
+    "decrypt",
+    "module"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "LeKoala",
+      "email": "thomas@lekoala.be"
+    }
+  ],
+  "require": {
+    "php": ">7.2",
+    "silverstripe/framework": "^4.4",
+    "silverstripe/assets": "^1.6",
+    "paragonie/ciphersweet": "^2.0"
+  },
+  "require-dev": {
+    "sminnee/phpunit": "^5.7",
+    "squizlabs/php_codesniffer": "^2.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "LeKoala\\Encrypt\\": "src/",
+      "LeKoala\\Encrypt\\Test\\": "tests/"
+    }
+  },
+  "extra": {
+    "installer-name": "encrypt"
+  },
+  "support": {
+    "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
+  },
+  "scripts": {
+    "lint": "phpcs code/ tests/",
+    "lint-clean": "phpcbf code/ tests/",
+    "test": "phpunit -v"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }
