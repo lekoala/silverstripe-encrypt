@@ -1,6 +1,6 @@
 {
   "name": "lekoala/silverstripe-encrypt",
-  "description": "Encrypt data extension for SilverStripe",
+  "description": "Encrypted database fields and files for SilverStripe",
   "type": "silverstripe-vendormodule",
   "keywords": [
     "silverstripe",
