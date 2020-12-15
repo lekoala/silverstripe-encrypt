@@ -254,7 +254,11 @@ class EncryptTest extends SapphireTest
 
         // In the db, it's not the same
         $dbRecord = $this->fetchRawData(get_class($model), $model->ID);
-        // print_r($dbRecord);
+
+        if (!EncryptHelper::isEncrypted($dbRecord['MyIndexedVarcharValue'])) {
+            print_r($dbRecord);
+        }
+
         /*
 (
     [ID] => 2

@@ -36,6 +36,7 @@ jobs:
         - DB=MYSQL
         - PDO=1
 
+# is compile needed?
 # before_install:
   # - git clone -b stable https://github.com/jedisct1/libsodium.git
   # - cd libsodium && sudo ./configure && sudo make check && sudo make install && cd ..
@@ -46,7 +47,7 @@ before_script:
   - if [ $COMPOSER_VERSION ] ; then composer self-update --$COMPOSER_VERSION ; elif [ $(php -r 'echo (int) version_compare(phpversion(), "7.3.0", "<=");') = "1" ] ; then composer self-update --1; else composer self-update --2; fi
   - composer --version
 
-  # SODIUM
+  # SODIUM is it sodium.so or libsodium.so ?
   # - pecl install libsodium
   # - echo "extension=sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 

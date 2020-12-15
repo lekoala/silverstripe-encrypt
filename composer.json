@@ -41,8 +41,8 @@
     "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
   },
   "scripts": {
-    "lint": "phpcs code/ tests/",
-    "lint-clean": "phpcbf code/ tests/",
+    "lint": "phpcs src/ tests/",
+    "lint-clean": "phpcbf src/ tests/",
     "test": "phpunit -v"
   },
   "minimum-stability": "dev",
