@@ -26,11 +26,6 @@ class EncryptedNumberField extends EncryptedDBField
         "LastFourBlindIndex" => 'Varchar(16)',
     );
 
-    public function compositeDatabaseFields()
-    {
-        return self::$composite_db;
-    }
-
     /**
      * @return string
      */

@@ -40,6 +40,7 @@ trait HasEncryption
 
     public function setValue($value, $record = null, $markChanged = true)
     {
+        // The value might come encrypted from the database
         if ($value && EncryptHelper::isEncrypted($value)) {
             try {
                 $this->value = $this->getEncryptedField()->decryptValue($value);

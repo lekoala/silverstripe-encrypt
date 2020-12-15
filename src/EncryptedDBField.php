@@ -185,15 +185,20 @@ class EncryptedDBField extends DBComposite
         }
 
         $encryptedField = $this->getEncryptedField();
-
         // Value will store the decrypted value
         if ($value instanceof EncryptedDBField) {
             $this->value = $value->getValue();
         } elseif ($record && isset($record[$this->name . 'Value'])) {
+            // In that case, the value come from the database and might be encrypted
             if ($record[$this->name . 'Value']) {
                 $encryptedValue = $record[$this->name . 'Value'];
                 try {
-                    $this->value = $encryptedField->decryptValue($encryptedValue);
+                    if (EncryptHelper::isEncrypted($encryptedValue)) {
+                        $this->value = $encryptedField->decryptValue($encryptedValue);
+                    } else {
+                        // Value wasn't crypted in the db
+                        $this->value = $encryptedValue;
+                    }
                 } catch (InvalidCiphertextException $ex) {
                     // rotate backend ?
                     // $this->value = $newEncryptedField->decryptValue($encryptedValue);
@@ -215,7 +220,7 @@ class EncryptedDBField extends DBComposite
         }
 
         // Forward changes since writeToManipulation are not called
-        $this->setValueField($value, $markChanged);
+        // $this->setValueField($value, $markChanged);
 
         return $this;
     }
@@ -237,6 +242,8 @@ class EncryptedDBField extends DBComposite
     }
 
     /**
+     * This is called by getChangedFields() to check if a field is changed
+     *
      * @return boolean
      */
     public function isChanged()
@@ -244,6 +251,19 @@ class EncryptedDBField extends DBComposite
         return $this->isChanged;
     }
 
+    /**
+     * If we pass a DBField to the setField method, it will
+     * trigger this method
+     *
+     * We save encrypted value on sub fields. They will be collected
+     * by write() operation by prepareManipulationTable
+     *
+     * Currently prepareManipulationTable ignores composite fields
+     * so we rely on the sub field mechanisms
+     *
+     * @param DataObject $dataObject
+     * @return void
+     */
     public function saveInto($dataObject)
     {
         $encryptedField = $this->getEncryptedField();
@@ -256,6 +276,9 @@ class EncryptedDBField extends DBComposite
             $encryptedValue = null;
             $blindIndexes = [];
         }
+
+        // This cause infinite loops
+        // $dataObject->setField($this->getName(), $this->value);
 
         // Encrypt value
         $key = $this->getName() . 'Value';

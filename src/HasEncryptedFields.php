@@ -54,6 +54,9 @@ trait HasEncryptedFields
             if ($schema->compositeField(static::class, $field)) {
                 $fieldObj = $this->dbObject($field);
                 $fieldObj->setValue($val);
+                // Keep a reference for isChange checks
+                // TODO: check if useful?
+                $this->record[$field] = $fieldObj;
                 // Proceed with DBField instance, that will call saveInto
                 // and call this method again for distinct fields
                 $val = $fieldObj;
