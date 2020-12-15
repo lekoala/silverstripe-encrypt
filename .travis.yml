@@ -24,17 +24,18 @@ jobs:
       env:
         - DB=PGSQL
         - PDO=1
-        - PHPCS_TEST=1
-        - PHPUNIT_TEST=1
     - php: 7.3
       env:
         - DB=MYSQL
         - PDO=1
+        - PHPCS_TEST=1
+        - PHPUNIT_TEST=1
     - php: 7.4
       env:
         - DB=MYSQL
         - PDO=1
 
+before_install: echo "extension = sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 before_script:
   # COMPOSER
   # install $COMPOSER_VERSION if defined, otherwise use Composer v1 with PHP <= 7.3, Composer v2 for >= 7.3
