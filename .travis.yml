@@ -2,7 +2,8 @@ language: php
 
 os: linux
 
-dist: xenial
+# https://github.com/travis-ci/travis-ci/issues/8863
+dist: trusty
 
 services:
   - mysql
@@ -35,12 +36,15 @@ jobs:
         - DB=MYSQL
         - PDO=1
 
-before_install: echo "extension = sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 before_script:
   # COMPOSER
   # install $COMPOSER_VERSION if defined, otherwise use Composer v1 with PHP <= 7.3, Composer v2 for >= 7.3
   - if [ $COMPOSER_VERSION ] ; then composer self-update --$COMPOSER_VERSION ; elif [ $(php -r 'echo (int) version_compare(phpversion(), "7.3.0", "<=");') = "1" ] ; then composer self-update --1; else composer self-update --2; fi
   - composer --version
+
+  # SODIUM
+  - sudo pecl install -f libsodium
+  - echo "extension = sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   # PHPENV
   - phpenv rehash
