@@ -44,7 +44,7 @@ before_script:
 
   # SODIUM
   - sudo apt-get install libsodium-dev
-  - sudo pecl install -f libsodium
+  - pecl install -f libsodium
   - echo "extension = libsodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 
   # PHPENV
