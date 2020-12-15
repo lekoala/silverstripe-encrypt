@@ -40,9 +40,6 @@ jobs:
   # - git clone -b stable https://github.com/jedisct1/libsodium.git
   # - cd libsodium && sudo ./configure && sudo make check && sudo make install && cd ..
 
-install:
-  - pecl install libsodium
-  - echo "extension=sodium.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 before_script:
   # COMPOSER
   # install $COMPOSER_VERSION if defined, otherwise use Composer v1 with PHP <= 7.3, Composer v2 for >= 7.3
