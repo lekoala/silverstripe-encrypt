@@ -179,6 +179,25 @@ class EncryptHelper
     }
 
     /**
+     * Compute Blind Index Information Leaks
+     *
+     * @link https://ciphersweet.paragonie.com/security
+     * @param array $indexes
+     * @param int $R
+     * @return float
+     */
+    public static function coincidenceCount(array $indexes, $R)
+    {
+        $exponent = 0;
+        $count = count($indexes);
+        for ($i = 0; $i < $count; ++$i) {
+            $exponent += min($indexes[$i]['L'], $indexes[$i]['K']);
+        }
+        return (float) max(1, $R) / pow(2, $exponent);
+    }
+
+
+    /**
      * Send a decrypted file
      *
      * @param File $file
