@@ -22,7 +22,7 @@
     "silverstripe/framework": "^4.4",
     "silverstripe/assets": "^1.6",
     "silverstripe/versioned": "^1.6",
-    "paragonie/ciphersweet": "^2.0"
+    "paragonie/ciphersweet": "^3.0"
   },
   "require-dev": {
     "sminnee/phpunit": "^5.7",

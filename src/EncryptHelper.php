@@ -6,14 +6,15 @@ use Exception;
 use SilverStripe\Assets\File;
 use ParagonIE\ConstantTime\Hex;
 use SilverStripe\Core\Environment;
-use SilverStripe\Core\Config\Config;
 use ParagonIE\CipherSweet\CipherSweet;
+use SilverStripe\ORM\FieldType\DBText;
+use SilverStripe\ORM\FieldType\DBVarchar;
+use SilverStripe\ORM\FieldType\DBHTMLText;
+use ParagonIE\CipherSweet\Backend\BoringCrypto;
+use ParagonIE\CipherSweet\Backend\FIPSCrypto;
 use ParagonIE\CipherSweet\Backend\ModernCrypto;
 use ParagonIE\CipherSweet\Contract\BackendInterface;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
-use SilverStripe\ORM\FieldType\DBHTMLText;
-use SilverStripe\ORM\FieldType\DBText;
-use SilverStripe\ORM\FieldType\DBVarchar;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -22,6 +23,10 @@ use SilverStripe\ORM\FieldType\DBVarchar;
  */
 class EncryptHelper
 {
+    const BORING = "brng";
+    const MODERN = "nacl";
+    const FIPS = "fips";
+
     /**
      * @var CipherSweet
      */
@@ -31,6 +36,20 @@ class EncryptHelper
      * @var array
      */
     protected static $field_cache = [];
+
+    /**
+     * @var string
+     */
+    protected static $forcedEncryption = null;
+
+    /**
+     * @param string $forcedEncryption brng|nacl|fips
+     * @return void
+     */
+    public static function setForcedEncryption($forcedEncryption)
+    {
+        self::$forcedEncryption = $forcedEncryption;
+    }
 
     /**
      * Attempting to pass a key of an invalid size (i.e. not 256-bit) will result in a CryptoOperationException being thrown.
@@ -70,6 +89,38 @@ class EncryptHelper
     }
 
     /**
+     * @return BackendInterface
+     */
+    public static function getRecommendedBackend()
+    {
+        if (version_compare(phpversion(), '7.2', '<')) {
+            return new FIPSCrypto();
+        }
+        return new BoringCrypto();
+    }
+
+    /**
+     * @param string $encryption
+     * @return BackendInterface
+     */
+    public static function getBackendForEncryption($encryption = null)
+    {
+        if (!$encryption) {
+            return self::getRecommendedBackend();
+        }
+        switch ($encryption) {
+            case self::BORING:
+                return new BoringCrypto();
+            case self::MODERN:
+                return new ModernCrypto();
+            case self::FIPS:
+                return new FIPSCrypto();
+        }
+        throw new Exception("Unsupported encryption $encryption");
+    }
+
+
+    /**
      * @return CipherSweet
      */
     public static function getCipherSweet()
@@ -78,7 +129,11 @@ class EncryptHelper
             return self::$ciphersweet;
         }
         $provider = self::getProviderWithKey();
-        $backend = new ModernCrypto();
+        if (self::$forcedEncryption) {
+            $backend = self::getBackendForEncryption(self::$forcedEncryption);
+        } else {
+            $backend = self::getRecommendedBackend();
+        }
         self::$ciphersweet = new CipherSweet($provider, $backend);
         return self::$ciphersweet;
     }
@@ -99,8 +154,60 @@ class EncryptHelper
      */
     public static function isEncrypted($value)
     {
+        $prefix = substr($value, 0, 5);
+        return in_array($prefix, ["brng:", "nacl:", "fips:"]);
+    }
+
+    /**
+     * @param string $value
+     * @return boolean
+     */
+    public static function isFips($value)
+    {
+        if (strpos($value, 'fips:') === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $value
+     * @return boolean
+     */
+    public static function isNacl($value)
+    {
         if (strpos($value, 'nacl:') === 0) {
             return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $value
+     * @return boolean
+     */
+    public static function isBoring($value)
+    {
+        if (strpos($value, 'brng:') === 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     */
+    public static function getEncryption($value)
+    {
+        if (self::isBoring($value)) {
+            return self::BORING;
+        }
+        if (self::isNacl($value)) {
+            return self::MODERN;
+        }
+        if (self::isFips($value)) {
+            return self::FIPS;
         }
         return false;
     }
@@ -139,12 +246,12 @@ class EncryptHelper
     public static function encrypt($value)
     {
         // Do not encrypt twice
-        $encryption = self::isEncrypted($value);
+        $encryption = self::getEncryption($value);
         if ($encryption) {
             return $value;
         }
         $provider = self::getProviderWithKey();
-        $backend = self::getCipherSweetBackend();
+        $backend = self::getBackendForEncryption($encryption);
         return $backend->encrypt($value, $provider->getSymmetricKey());
     }
 
@@ -156,11 +263,12 @@ class EncryptHelper
     public static function decrypt($value)
     {
         // Only decrypt what we can decrypt
-        if (!self::isEncrypted($value)) {
+        $encryption = self::getEncryption($value);
+        if (!$encryption) {
             return $value;
         }
         $provider = self::getProviderWithKey();
-        $backend = self::getCipherSweetBackend();
+        $backend =  self::getBackendForEncryption($encryption);
         return $backend->decrypt($value, $provider->getSymmetricKey());
     }
 
@@ -195,7 +303,6 @@ class EncryptHelper
         }
         return (float) max(1, $R) / pow(2, $exponent);
     }
-
 
     /**
      * Send a decrypted file
