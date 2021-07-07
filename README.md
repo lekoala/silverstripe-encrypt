@@ -10,7 +10,8 @@ This module use [ciphersweet](https://github.com/paragonie/ciphersweet) under th
 
 Thanks to CipherSweet, your encrypted data is searchable!
 
-NOTE: this module is not compatible with previous versions. Please use branch 1 if you need the previous encryption system.
+NOTE: Current version of this module has incompatibilities for composite fields with branch 2. Plan to rotate your values or keep using previous version.
+NOTE: Branch 2 of this module is not compatible with previous versions. Please use branch 1 if you need the previous encryption system.
 
 How to use
 ==================

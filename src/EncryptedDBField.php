@@ -66,7 +66,8 @@ class EncryptedDBField extends DBComposite
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
         }
-        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name))
+        // fieldName needs to match exact db name for row rotator to work properly
+        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . "Value"))
             ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], 32));
         return $encryptedField;
     }

@@ -3,6 +3,7 @@
 namespace LeKoala\Encrypt;
 
 use Exception;
+use League\Csv\InvalidArgument;
 use SilverStripe\Assets\File;
 use ParagonIE\ConstantTime\Hex;
 use SilverStripe\Core\Environment;
@@ -15,6 +16,7 @@ use ParagonIE\CipherSweet\Backend\FIPSCrypto;
 use ParagonIE\CipherSweet\Backend\ModernCrypto;
 use ParagonIE\CipherSweet\Contract\BackendInterface;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
+use SilverStripe\ORM\FieldType\DBComposite;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -61,6 +63,9 @@ class EncryptHelper
      */
     public static function setForcedEncryption($forcedEncryption)
     {
+        if (!in_array($forcedEncryption, ["brng", "nacl", "fips"])) {
+            throw new InvalidArgument("$forcedEncryption is not supported");
+        }
         self::$forcedEncryption = $forcedEncryption;
     }
 
@@ -83,6 +88,7 @@ class EncryptHelper
 
     /**
      * @link https://github.com/paragonie/ciphersweet/issues/62
+     * @param array $ciphertext
      * @return array
      */
     public static function removeNulls($ciphertext)
@@ -201,6 +207,14 @@ class EncryptHelper
     }
 
     /**
+     * @return void
+     */
+    public static function clearCipherSweet()
+    {
+        self::$ciphersweet = null;
+    }
+
+    /**
      * @return BackendInterface
      */
     public static function getCipherSweetBackend()
@@ -302,9 +316,10 @@ class EncryptHelper
 
     /**
      * @param string $class
+     * @param bool $dbFields
      * @return array
      */
-    public static function getEncryptedFields($class)
+    public static function getEncryptedFields($class, $dbFields = false)
     {
         $fields = $class::config()->db;
         $list = [];
@@ -313,7 +328,11 @@ class EncryptHelper
             if (isset($fields[$field])) {
                 self::$field_cache[$key] = strpos($dbClass, 'Encrypted') !== false;
                 if (self::$field_cache[$key]) {
-                    $list[] = $field;
+                    if ($dbFields && is_subclass_of($dbClass, DBComposite::class)) {
+                        $list[] = $field . "Value";
+                    } else {
+                        $list[] = $field;
+                    }
                 }
             } else {
                 self::$field_cache[$key] = false;

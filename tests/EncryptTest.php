@@ -11,6 +11,7 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
 use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\HasEncryptedFields;
+use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
@@ -40,6 +41,7 @@ class EncryptTest extends SapphireTest
 
     public function setUp()
     {
+        // EncryptHelper::setForcedEncryption("nacl");
         EncryptHelper::setAutomaticRotation(false);
         Environment::setEnv('ENCRYPTION_KEY', '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e5');
         parent::setUp();
@@ -79,11 +81,22 @@ class EncryptTest extends SapphireTest
 
         // Replace with actual yml values
         $data = [
-            'MyText' => 'nacl:nYemK31JCP4OV8_zTItnLxI6RbrZ0iFadSv-mHNPO-et1rN15ElwOTMGuDTGX-57A9rW2zDN',
-            'MyHTMLText' => 'nacl:85v7uUqHjwlCRpS5Khbjspg8xruFhCnuYFLenTG2h4iDV-7EaOfwIv01t4iQLZmnvhqOz8O-jiCPFBZTQQ==',
-            'MyVarchar' => 'nacl:efSeE2GFCzYuRBeOejZAcArqqTYDR0Ez9geqScIBT2D1oGNCDK-HyqGIYmZiOSn_n3uuL5GSpK-1dCwfO_Oo',
+            'MyText' => 'nacl:_nKhFvZkFwWJssMLf2s6wsucM-6zMmT862XGiYG9KQaL5fgl3CSA_O0gcs3OGPPB4AJoNInC',
+            'MyHTMLText' => 'nacl:jetKPUBgETbLtlfAx1VkZiWJFG65hCuWVSmrwVDX4TTysmJkj2vnhI329oa9eCTlX1kKSjCp7AyFXDKT7Q==',
+            'MyVarchar' => 'nacl:_-5ZsG9txfqMNkHY7xl0JlmCLzrx9BemtC0CwGjYZOt9pCwle9PjHmIZcqJcoEdxpJXplLtKPF-xPGax_pIy',
+            'MyIndexedVarcharValue' => 'nacl:V1G-EPYeHP5-OQu2XAcPp4ym0HuvLpseBqytg3VVddAWoyC3Lm5aAE3G9xx_2uW6QwO0dcnrLFBPNFZ6eQ==',
+            'MyNumberValue' => 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4=',
         ];
         $update = new SQLUpdate("EncryptedModel", $data, "ID IN (1,3)");
+        $update->execute();
+        $data = [
+            'MyText' => 'brng:DwBtLvR876mbL5qfX1IIUDZ7NbrDtyXAgXjB8dDKxfYAYKlajKr9J9NGMY47tkNcrLv4PBbHQ4bAOTZHGsTvmQuGT7he0w==',
+            'MyHTMLText' => 'brng:Nf7VDpEPIQABaZvch8wDY3jCuctBcy0x6sIJO_BkWJL2H86b6O0WvXfDldFihhXxnhzJH3cy-Ygx6sMbgBttDPcT6j8SXFqxeG2pxHI=',
+            'MyVarchar' => 'brng:hoE5xdUMwdJRjXi4jsGs8d_FzBzibUqmiRdoC-oo7_JsFPtz55FzAIb_Qcl-SreatW0uZViRGUvhLGbszKuIUejswmXIqYtSglkc9nHk5g==',
+            'MyIndexedVarcharValue' => 'brng:_RZQDZXqeISYm3WtfTSAS2p0hZz-QDHAWmFSKvcaWLQ5ODRyUKKcPvsGOiIvfBPYmOJH35zh1Hrm2K2LY4ElLNVfAQN_QgcXpxWWNWI=',
+            'MyNumberValue' => 'brng:4AB4YlC-AZHrb6d-t6aiDjZDVdg0BHRN2jAb5CoxiFN89XssvReGkbQMp9jGbXtstk1W94745WWJeiI4n05HsDPu',
+        ];
+        $update = new SQLUpdate("EncryptedModel", $data, "ID IN (2)");
         $update->execute();
     }
 
@@ -214,9 +227,8 @@ class EncryptTest extends SapphireTest
         $result = $model->needsToRotateEncryption($old);
         $this->assertTrue($result);
 
-        // This is throwing invalid ciphertext
-        // $result = $model->rotateEncryption($old);
-        // $this->assertTrue($result);
+        $result = $model->rotateEncryption($old);
+        $this->assertTrue($result);
     }
 
     public function testFixture()
@@ -238,7 +250,6 @@ class EncryptTest extends SapphireTest
             $this->assertTrue($model->hasEncryptedField('MyVarchar'));
             $this->assertTrue($model->hasEncryptedField('MyIndexedVarchar'));
         }
-
 
         // print_r($model);
         /*
@@ -310,11 +321,7 @@ class EncryptTest extends SapphireTest
         $model = $this->getTestModel2();
 
         $result = $model->needsToRotateEncryption(EncryptHelper::getCipherSweet());
-        // echo '<pre>';
-        // print_r($this->fetchRawData(Test_EncryptedModel::class, $model->ID));
-        // die();
-        //TODO: understand why this returns true
-        // $this->assertFalse($result);
+        $this->assertFalse($result);
 
         // Ensure we have our blind indexes
         $this->assertTrue($model->hasDatabaseField('MyIndexedVarcharValue'));

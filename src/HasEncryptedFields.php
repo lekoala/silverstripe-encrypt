@@ -75,15 +75,20 @@ trait HasEncryptedFields
         $newRow = $this->getEncryptedRow($new);
 
         $rotator = new RowRotator($oldRow, $newRow);
-        $query = new SQLSelect("*", $tableName, [$columnIdentifier => $this->ID]);
+        $encryptedFields = EncryptHelper::getEncryptedFields($class, true);
+        $query = new SQLSelect($encryptedFields, $tableName, [$columnIdentifier => $this->ID]);
         $ciphertext = $query->execute()->first();
         $ciphertext = EncryptHelper::removeNulls($ciphertext);
         $indices = null;
         if ($rotator->needsReEncrypt($ciphertext)) {
             list($ciphertext, $indices) = $rotator->prepareForUpdate($ciphertext);
-            $assignment = array_merge($ciphertext, $indices);
+            $assignment = $ciphertext;
+            foreach ($indices as $name => $arr) {
+                $assignment[$name] = $arr["value"];
+            }
             $update = new SQLUpdate($tableName, $assignment, ["ID" => $this->ID]);
-            return $update->execute();
+            $update->execute();
+            return true;
         }
         return false;
     }
@@ -97,9 +102,10 @@ trait HasEncryptedFields
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
         }
-        $tableName = DataObject::getSchema()->tableName(get_class($this));
+        $class = get_class($this);
+        $tableName = DataObject::getSchema()->tableName($class);
         $encryptedRow = new EncryptedRow($engine, $tableName);
-        $fields = EncryptHelper::getEncryptedFields(get_class($this));
+        $fields = EncryptHelper::getEncryptedFields($class);
         foreach ($fields as $field) {
             /** @var EncryptedField $encryptedField */
             $encryptedField = $this->dbObject($field)->getEncryptedField($engine);
@@ -107,7 +113,7 @@ trait HasEncryptedFields
             if (count($blindIndexes)) {
                 $encryptedRow->addField($field . "Value");
                 foreach ($encryptedField->getBlindIndexObjects() as $blindIndex) {
-                    $encryptedRow->addBlindIndex($field, $blindIndex);
+                    $encryptedRow->addBlindIndex($field . "Value", $blindIndex);
                 }
             } else {
                 $encryptedRow->addField($field);

@@ -44,7 +44,7 @@ class EncryptedSearchFilter extends SearchFilter
     {
         $engine = EncryptHelper::getCipherSweet();
         $table = DataObject::getSchema()->tableName($this->model);
-        $encryptedField = (new EncryptedField($engine, $table, $this->name))
+        $encryptedField = (new EncryptedField($engine, $table, $this->name . "Value"))
             ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], 32));
         return $encryptedField;
     }

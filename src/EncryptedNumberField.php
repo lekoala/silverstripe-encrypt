@@ -51,7 +51,8 @@ class EncryptedNumberField extends EncryptedDBField
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
         }
-        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name))
+        // fieldName needs to match exact db name for row rotator to work properly
+        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . "Value"))
             // Add a blind index for the "last 4 of SSN":
             ->addBlindIndex(new BlindIndex($this->name . "LastFourBlindIndex", [new LastFourDigits()], 16))
             ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], 32));
