@@ -52,32 +52,11 @@ class EncryptTest extends SapphireTest
             throw new Exception("You must load sodium extension for this");
         }
 
-        // The rows are already decrypted due to the fixtures going through the ORM layer
+        // The rows are already decrypted and changed due to the fixtures going through the ORM layer
         $result = DB::query("SELECT * FROM EncryptedModel");
         // echo '<pre>';
         // print_r(iterator_to_array($result));
         // die();
-
-        /*
-        [0] => Array
-        (
-            [ID] => 1
-            [ClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
-            [LastEdited] => 2021-07-07 14:53:35
-            [Created] => 2021-07-07 14:53:35
-            [Name] => demo
-            [MyText] => brng:MlkjE7xiock-ofeuROQCG7n1wOrbG8bj4gc0pTqZn2u3e2pNcQe-mCP6qgT1QkXPxZGjvojySyuWzA_aK8Y-fwrUMl2_8Q==
-            [MyHTMLText] => brng:mSNIa6LmvexuEu2eoStA8ZxyCW22UOhrA9r_guJR8eDsvwxWQJNgdEzKaO5dct0HeiYdd7CYouPWm-ki-els-YV2DBOlv85TVgyckys=
-            [MyVarchar] => brng:1fHGMjvptiCtmUQ5KNwAPqJsvrg38VUjUAsqvgW8taz-Ao791j0T8WBcCMvUcnZ087N1EifryBScrC0QhJzb5Jmt7Fp1dsbBB0EIr2glJg==
-            [RegularFileID] => 2
-            [EncryptedFileID] => 3
-            [MyNumberValue] => nacl:tKXzRBnsEfdJVcCouNIvRYQlt5dPQrZk4_PvpdyEUkrN6gWdDzxJxwD6VDKgjQeKamo=
-            [MyNumberBlindIndex] => a1de44f9
-            [MyNumberLastFourBlindIndex] => addb
-            [MyIndexedVarcharValue] => nacl:F-q5OUdxjK77sxrGM6Q8BzQ3lDbiDwM9VxOUchcrlDXmgzUwhb0ADQsrxRlbyZnCG4q3nRlJ2cVHRLskVA==
-            [MyIndexedVarcharBlindIndex] => 216d113a
-        )
-        */
 
         // Replace with actual yml values
         $data = [

@@ -70,6 +70,7 @@ class EncryptHelper
     }
 
     /**
+     * This would only work if you changed from algorithm
      * @return bool
      */
     public static function getAutomaticRotation()
@@ -129,13 +130,23 @@ class EncryptHelper
     }
 
     /**
+     * @return string
+     */
+    public static function getOldKey()
+    {
+        return Environment::getEnv('OLD_ENCRYPTION_KEY');
+    }
+
+    /**
+     * @param string $key
      * @return StringProvider
      */
-    public static function getProviderWithKey()
+    public static function getProviderWithKey($key = null)
     {
-        return new StringProvider(
-            self::getKey()
-        );
+        if ($key === null) {
+            $key = self::getKey();
+        }
+        return new StringProvider($key);
     }
 
     /**
@@ -171,20 +182,22 @@ class EncryptHelper
 
     /**
      * @param BackendInterface $backend
+     * @param string $key
      * @return CipherSweet
      */
-    public static function getEngineForEncryption($encryption = null)
+    public static function getEngineForEncryption($encryption = null, $key = null)
     {
-        return self::getEngine(self::getBackendForEncryption($encryption));
+        return self::getEngine(self::getBackendForEncryption($encryption), $key);
     }
 
     /**
      * @param BackendInterface $backend
+     * @param string $key
      * @return CipherSweet
      */
-    public static function getEngine(BackendInterface $backend)
+    public static function getEngine(BackendInterface $backend, $key = null)
     {
-        $provider = self::getProviderWithKey();
+        $provider = self::getProviderWithKey($key);
         return new CipherSweet($provider, $backend);
     }
 

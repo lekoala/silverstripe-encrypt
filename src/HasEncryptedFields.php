@@ -134,6 +134,7 @@ trait HasEncryptedFields
             $fieldObj = $this->dbObject($field);
             // Set decrypted value directly on the record for later use
             $this->record[$field] = $fieldObj->getValue();
+            return $this->record[$field];
         }
         return parent::getField($field);
     }
@@ -161,7 +162,8 @@ trait HasEncryptedFields
                 $val = $fieldObj;
             }
         }
-        return parent::setField($field, $val);
+        parent::setField($field, $val);
+        return $this;
     }
 
     /**

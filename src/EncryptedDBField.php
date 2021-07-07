@@ -194,15 +194,17 @@ class EncryptedDBField extends DBComposite
             if ($record[$this->name . 'Value']) {
                 $encryptedValue = $record[$this->name . 'Value'];
                 try {
-                    if (EncryptHelper::isEncrypted($encryptedValue)) {
-                        $this->value = $encryptedField->decryptValue($encryptedValue);
-                    } else {
-                        // Value wasn't crypted in the db
-                        $this->value = $encryptedValue;
-                    }
+                    $this->value = $this->getEncryptedField()->decryptValue($encryptedValue);
                 } catch (InvalidCiphertextException $ex) {
                     // rotate backend ?
-                    // $this->value = $newEncryptedField->decryptValue($encryptedValue);
+                    if (EncryptHelper::getAutomaticRotation()) {
+                        $encryption = EncryptHelper::getEncryption($encryptedValue);
+                        $engine = EncryptHelper::getEngineForEncryption($encryption);
+                        $oldEncryptedField = $this->getEncryptedField($engine);
+                        $this->value = $oldEncryptedField->decryptValue($encryptedValue);
+                    } else {
+                        $this->value = $encryptedValue;
+                    }
                 } catch (Exception $ex) {
                     // We cannot decrypt
                     $this->value = $this->nullValue();

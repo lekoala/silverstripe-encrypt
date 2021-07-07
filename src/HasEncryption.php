@@ -59,8 +59,8 @@ trait HasEncryption
                 if (EncryptHelper::getAutomaticRotation()) {
                     $encryption = EncryptHelper::getEncryption($value);
                     $engine = EncryptHelper::getEngineForEncryption($encryption);
-                    $newEncryptedField = $this->getEncryptedField($engine);
-                    $this->value = $newEncryptedField->decryptValue($value);
+                    $oldEncryptedField = $this->getEncryptedField($engine);
+                    $this->value = $oldEncryptedField->decryptValue($value);
                 } else {
                     $this->value = $value;
                 }
