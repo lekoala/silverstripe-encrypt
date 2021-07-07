@@ -43,12 +43,56 @@ class EncryptHelper
     protected static $forcedEncryption = null;
 
     /**
+     * @var bool
+     */
+    protected static $automaticRotation = true;
+
+    /**
+     * @return string
+     */
+    public static function getForcedEncryption()
+    {
+        return self::$forcedEncryption;
+    }
+
+    /**
      * @param string $forcedEncryption brng|nacl|fips
      * @return void
      */
     public static function setForcedEncryption($forcedEncryption)
     {
         self::$forcedEncryption = $forcedEncryption;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function getAutomaticRotation()
+    {
+        return self::$automaticRotation;
+    }
+
+    /**
+     * @param bool $setAutomaticRotation
+     * @return void
+     */
+    public static function setAutomaticRotation($automaticRotation)
+    {
+        self::$automaticRotation = $automaticRotation;
+    }
+
+    /**
+     * @link https://github.com/paragonie/ciphersweet/issues/62
+     * @return array
+     */
+    public static function removeNulls($ciphertext)
+    {
+        foreach ($ciphertext as $k => $v) {
+            if ($v === null) {
+                $ciphertext[$k] = '';
+            }
+        }
+        return $ciphertext;
     }
 
     /**
@@ -119,6 +163,24 @@ class EncryptHelper
         throw new Exception("Unsupported encryption $encryption");
     }
 
+    /**
+     * @param BackendInterface $backend
+     * @return CipherSweet
+     */
+    public static function getEngineForEncryption($encryption = null)
+    {
+        return self::getEngine(self::getBackendForEncryption($encryption));
+    }
+
+    /**
+     * @param BackendInterface $backend
+     * @return CipherSweet
+     */
+    public static function getEngine(BackendInterface $backend)
+    {
+        $provider = self::getProviderWithKey();
+        return new CipherSweet($provider, $backend);
+    }
 
     /**
      * @return CipherSweet
@@ -236,6 +298,28 @@ class EncryptHelper
             self::$field_cache[$key] = false;
         }
         return self::$field_cache[$key];
+    }
+
+    /**
+     * @param string $class
+     * @return array
+     */
+    public static function getEncryptedFields($class)
+    {
+        $fields = $class::config()->db;
+        $list = [];
+        foreach ($fields as $field => $dbClass) {
+            $key = $class . '_' . $field;
+            if (isset($fields[$field])) {
+                self::$field_cache[$key] = strpos($dbClass, 'Encrypted') !== false;
+                if (self::$field_cache[$key]) {
+                    $list[] = $field;
+                }
+            } else {
+                self::$field_cache[$key] = false;
+            }
+        }
+        return $list;
     }
 
     /**

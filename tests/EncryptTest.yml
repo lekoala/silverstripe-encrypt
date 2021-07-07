@@ -22,6 +22,7 @@
     Name: secret.doc
     Title: A secret file
 'LeKoala\Encrypt\Test\Test_EncryptedModel':
+  # this record use old encryption => needs to be rotated
   demo:
     Name: demo
     MyVarcharDecrypted: 'encrypted varchar value'
@@ -37,3 +38,28 @@
     MyNumberLastFourBlindIndex: 'addb'
     RegularFileID: =>SilverStripe\Assets\File.regular
     EncryptedFileID: =>SilverStripe\Assets\File.encrypted
+  # this record use up to date encryption
+  demo2:
+    Name: demo2
+    MyText: 'brng:wNKj4B40Q6DMH7AEW89w8fVZ93RKTveOEibwgF-gWe3MIuw_ttp9qT_HdSU2g9N-9Htmg0C8fP5g63GVP6Eyl7fnIKVczA=='
+    MyHTMLText: 'brng:fh0quzjrCYCu7a7hP0HW2ZRpcTQzc6s6TS21rGOHS81TbflvJfpzHCtFiTV-BLb2jSPI0YZo97tgeTLbgONmgifkB78sw6R8bQf2kFE='
+    MyVarchar: 'brng:Bq5aTYWEqOzSLS_JLon6DAraxADcJGCRAb6fjPIJdazbH7J4j2wlolV2heSKCTrlYu06rVzwHxxY1ZxWHDty4KfJM0vfmwRR4ZExzux83A=='
+    MyNumberValue: 'brng:pKYd8mXDduwhudwWeoE_ByO6IkvVlykVa6h09DTYFdHcb52yA1R5yhTEqQQjz1ndADFRa9WLLM3_e1U8PfPTiP4E'
+    MyNumberBlindIndex: 'a1de44f9'
+    MyNumberLastFourBlindIndex: 'addb'
+    MyIndexedVarcharValue: 'brng:TBD63tu-P9PluzI_zKTZ17P-4bhFvhbW7eOeSOOnDEf7n3Ytv2_52rlvGTVSJeWr5f6Z5eqrxi-RL5B6V0PrUmEqhfE2TGt-IdH5hfU='
+    MyIndexedVarcharBlindIndex: '216d113a'
+  # the same as demo 1, for rotate test purposes
+  demo3:
+    Name: demo3
+    MyVarcharDecrypted: 'encrypted varchar value'
+    MyText: 'nacl:nYemK31JCP4OV8_zTItnLxI6RbrZ0iFadSv-mHNPO-et1rN15ElwOTMGuDTGX-57A9rW2zDN'
+    MyHTMLText: 'nacl:85v7uUqHjwlCRpS5Khbjspg8xruFhCnuYFLenTG2h4iDV-7EaOfwIv01t4iQLZmnvhqOz8O-jiCPFBZTQQ=='
+    MyVarchar: 'nacl:efSeE2GFCzYuRBeOejZAcArqqTYDR0Ez9geqScIBT2D1oGNCDK-HyqGIYmZiOSn_n3uuL5GSpK-1dCwfO_Oo'
+    MyIndexedVarcharValueDecrypted: 'some_searchable_value'
+    MyIndexedVarcharValue: 'nacl:F-q5OUdxjK77sxrGM6Q8BzQ3lDbiDwM9VxOUchcrlDXmgzUwhb0ADQsrxRlbyZnCG4q3nRlJ2cVHRLskVA=='
+    MyIndexedVarcharBlindIndex: '216d113a'
+    MyNumberValueDecrypted: '0123456789'
+    MyNumberValue: 'nacl:tKXzRBnsEfdJVcCouNIvRYQlt5dPQrZk4_PvpdyEUkrN6gWdDzxJxwD6VDKgjQeKamo='
+    MyNumberBlindIndex: 'a1de44f9'
+    MyNumberLastFourBlindIndex: 'addb'

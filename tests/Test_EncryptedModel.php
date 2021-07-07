@@ -11,6 +11,7 @@ use LeKoala\Encrypt\EncryptedDBVarchar;
 use LeKoala\Encrypt\HasEncryptedFields;
 use LeKoala\Encrypt\EncryptedDBHTMLText;
 use LeKoala\Encrypt\EncryptedNumberField;
+use SilverStripe\ORM\FieldType\DBVarchar;
 
 /**
  * A test model for our encryption
