@@ -19,6 +19,8 @@ class EncryptedDBField extends DBComposite
 {
     const LARGE_INDEX_SIZE = 32;
     const SMALL_INDEX_SIZE = 16;
+    const VALUE_SUFFIX = "Value";
+    const INDEX_SUFFIX = "BlindIndex";
 
     /**
      * @config
@@ -104,7 +106,7 @@ class EncryptedDBField extends DBComposite
      */
     public function getValueField()
     {
-        return $this->getField('Value');
+        return $this->getField(self::VALUE_SUFFIX);
     }
 
     /**
@@ -112,7 +114,7 @@ class EncryptedDBField extends DBComposite
      */
     public function setValueField($value, $markChanged = true)
     {
-        return $this->setField('Value', $value, $markChanged);
+        return $this->setField(self::VALUE_SUFFIX, $value, $markChanged);
     }
 
     /**
@@ -120,7 +122,7 @@ class EncryptedDBField extends DBComposite
      */
     public function getBlindIndexField()
     {
-        return $this->getField('BlindIndex');
+        return $this->getField(self::INDEX_SUFFIX);
     }
 
     /**
@@ -128,7 +130,7 @@ class EncryptedDBField extends DBComposite
      */
     public function setBlindIndexField($value, $markChanged = true)
     {
-        return $this->setField('BlindIndex', $value, $markChanged);
+        return $this->setField(self::INDEX_SUFFIX, $value, $markChanged);
     }
 
     /**
@@ -142,8 +144,8 @@ class EncryptedDBField extends DBComposite
         }
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
         // fieldName needs to match exact db name for row rotator to work properly
-        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . "Value"))
-            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], $indexSize));
+        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . self::VALUE_SUFFIX))
+            ->addBlindIndex(new BlindIndex($this->name . self::INDEX_SUFFIX, [], $indexSize));
         return $encryptedField;
     }
 
@@ -166,8 +168,8 @@ class EncryptedDBField extends DBComposite
             $blindIndexes = [];
         }
 
-        $manipulation['fields'][$this->name . 'Value'] = $encryptedValue;
-        $manipulation['fields'][$this->name . 'BlindIndex'] = $blindIndexes[$this->name . "BlindIndex"] ?? null;
+        $manipulation['fields'][$this->name . self::VALUE_SUFFIX] = $encryptedValue;
+        $manipulation['fields'][$this->name . self::INDEX_SUFFIX] = $blindIndexes[$this->name . self::INDEX_SUFFIX] ?? null;
     }
 
     /**
@@ -176,8 +178,8 @@ class EncryptedDBField extends DBComposite
     public function addToQuery(&$query)
     {
         parent::addToQuery($query);
-        $query->selectField(sprintf('"%sValue"', $this->name));
-        $query->selectField(sprintf('"%sBlindIndex"', $this->name));
+        $query->selectField(sprintf('"%s' . self::VALUE_SUFFIX . '"', $this->name));
+        $query->selectField(sprintf('"%s' . self::INDEX_SUFFIX . '"', $this->name));
     }
 
     /**
@@ -187,7 +189,7 @@ class EncryptedDBField extends DBComposite
      * @param string $indexSuffix The blind index. Defaults to full index
      * @return string
      */
-    public function getSearchValue($val, $indexSuffix = 'BlindIndex')
+    public function getSearchValue($val, $indexSuffix = null)
     {
         if (!$this->tableName && $this->record) {
             $this->tableName = DataObject::getSchema()->tableName(get_class($this->record));
@@ -197,6 +199,9 @@ class EncryptedDBField extends DBComposite
         }
         if (!$this->name) {
             throw new Exception("Name not set for search value");
+        }
+        if ($indexSuffix === null) {
+            $indexSuffix = self::INDEX_SUFFIX;
         }
         $field = $this->getEncryptedField();
         $index = $field->getBlindIndex($val, $this->name . $indexSuffix);
@@ -213,7 +218,7 @@ class EncryptedDBField extends DBComposite
     public function getSearchParams($val, $indexSuffix = null)
     {
         if (!$indexSuffix) {
-            $indexSuffix = 'BlindIndex';
+            $indexSuffix = self::INDEX_SUFFIX;
         }
         $searchValue = $this->getSearchValue($val, $indexSuffix);
         $blindIndexField = $this->name . $indexSuffix;
@@ -223,21 +228,44 @@ class EncryptedDBField extends DBComposite
     /**
      * @param string $val The unencrypted value
      * @param string $indexSuffix The blind index. Defaults to full index
-     * @return DataObject
+     * @return DataList
      */
-    public function fetchRecord($val, $indexSuffix = null)
+    public function fetchDataList($val, $indexSuffix = null)
     {
         if (!$this->record) {
             throw new Exception("No record set for this field");
         }
+        if (!$indexSuffix) {
+            $indexSuffix = self::INDEX_SUFFIX;
+        }
         $class = get_class($this->record);
 
         // A blind index can return false positives
-        $list = $class::get()->where($this->getSearchParams($val, $indexSuffix));
-        return $list->first();
+        $params = $this->getSearchParams($val, $indexSuffix);
+        $blindIndexes = $this->getEncryptedField()->getBlindIndexObjects();
+        $list = $class::get()->where($params);
+        return $list;
+    }
+
+    /**
+     * @param string $val The unencrypted value
+     * @param string $indexSuffix The blind index. Defaults to full index
+     * @return DataObject
+     */
+    public function fetchRecord($val, $indexSuffix = null)
+    {
+        if (!$indexSuffix) {
+            $indexSuffix = self::INDEX_SUFFIX;
+        }
+        $list = $this->fetchDataList($val, $indexSuffix);
+        $blindIndexes = $this->getEncryptedField()->getBlindIndexObjects();
+        $blindIndex = $blindIndexes[$this->name . $indexSuffix];
         $name = $this->name;
+        /** @var DataObject $record  */
         foreach ($list as $record) {
-            if ($record->dbObject($name)->getValue() == $val) {
+            $obj = $record->dbObject($name);
+            // Value might be transformed
+            if ($blindIndex->getTransformed($obj->getValue()) == $val) {
                 return $record;
             }
         }
@@ -257,12 +285,14 @@ class EncryptedDBField extends DBComposite
         // When given a dataobject, bind this field to that
         if ($record instanceof DataObject) {
             $this->bindTo($record);
-            $record = null;
         }
 
         // Convert an object to an array
         if ($record && $record instanceof DataObject) {
             $record = $record->getQueriedDatabaseFields();
+            if (!$record) {
+                throw new Exception("Could not convert record to array");
+            }
         }
 
         // Set the table name if it was not set earlier
@@ -276,10 +306,12 @@ class EncryptedDBField extends DBComposite
         // Value will store the decrypted value
         if ($value instanceof EncryptedDBField) {
             $this->value = $value->getValue();
-        } elseif ($record && isset($record[$this->name . 'Value'])) {
+        } elseif ($record && isset($record[$this->name . self::VALUE_SUFFIX])) {
             // In that case, the value come from the database and might be encrypted
-            if ($record[$this->name . 'Value']) {
-                $encryptedValue = $record[$this->name . 'Value'];
+            $encryptedValue = $record[$this->name . self::VALUE_SUFFIX];
+
+            // It should always be encrypted from the db, but just in case...
+            if ($encryptedValue && EncryptHelper::isEncrypted($encryptedValue)) {
                 try {
                     $this->value = $this->getEncryptedField()->decryptValue($encryptedValue);
                 } catch (InvalidCiphertextException $ex) {
@@ -299,10 +331,14 @@ class EncryptedDBField extends DBComposite
                     $this->value = $this->nullValue();
                 }
             } else {
-                $this->value = $this->nullValue();
+                if ($encryptedValue) {
+                    $this->value = $encryptedValue;
+                } else {
+                    $this->value = $this->nullValue();
+                }
             }
         } elseif (is_array($value)) {
-            if (array_key_exists('Value', $value)) {
+            if (array_key_exists(self::VALUE_SUFFIX, $value)) {
                 $this->value = $value;
             }
         } elseif (is_string($value) || !$value) {
@@ -377,7 +413,7 @@ class EncryptedDBField extends DBComposite
         $dataObject->setField($key, $encryptedValue);
 
         // Build blind index
-        $key = $this->getName() . 'BlindIndex';
+        $key = $this->getName() . self::INDEX_SUFFIX;
         if (isset($blindIndexes[$key])) {
             $dataObject->setField($key, $blindIndexes[$key]);
         }

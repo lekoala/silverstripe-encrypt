@@ -147,6 +147,7 @@ Or even better
 
 ```php
 $record = MyModel::getByBlindIndex("MyEncryptedField", $value);
+$list = MyModel::getAllByBlindIndex("MyEncryptedField", $value);
 ```
 
 Or use search filter
@@ -155,7 +156,7 @@ Or use search filter
 $record = MyModel::get()->filter('MyEncryptedField:Encrypted', $searchValue)->first();
 ```
 
-NOTE: the search filter can return false positives, the `getByBlindIndex` method is preferred.
+NOTE: the search filter can return false positives, the `getByBlindIndex` method is preferred if you want one record.
 
 It is highly recommended to set indexes on your fields that use blind indexes. The convention is as follows:
 {Name}BlindIndex and {Name}LastFourBlindIndex

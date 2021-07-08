@@ -52,6 +52,22 @@ trait HasEncryptedFields
     }
 
     /**
+     * This value will return a list of records
+     *
+     * @param string $field
+     * @param string $value
+     * @return DataList|static[]
+     */
+    public static function getAllByBlindIndex($field, $value)
+    {
+        /** @var DataObject $singl  */
+        $singl = singleton(get_called_class());
+        /** @var EncryptedDBField $obj  */
+        $obj = $singl->dbObject($field);
+        return $obj->fetchDataList($value);
+    }
+
+    /**
      * Check if the record needs to be reencrypted with a new key or algo
      * @param CipherSweet $old
      * @return bool
@@ -157,6 +173,7 @@ trait HasEncryptedFields
         if ($this->hasEncryptedField($field)) {
             $fieldObj = $this->dbObject($field);
             // Set decrypted value directly on the record for later use
+            // it can be fetched by dbObject calls
             $this->record[$field] = $fieldObj->getValue();
             return $this->record[$field];
         }
@@ -183,6 +200,7 @@ trait HasEncryptedFields
                 $fieldObj = $this->dbObject($field);
                 $fieldObj->setValue($val);
                 // Keep a reference for isChange checks
+                // and also can be queried by dbObject
                 $this->record[$field] = $fieldObj;
                 // Proceed with DBField instance, that will call saveInto
                 // and call this method again for distinct fields

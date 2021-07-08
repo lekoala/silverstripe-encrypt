@@ -12,6 +12,7 @@ use SilverStripe\Dev\SapphireTest;
 use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\HasEncryptedFields;
 use ParagonIE\CipherSweet\CipherSweet;
+use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DB;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
@@ -171,11 +172,20 @@ class EncryptTest extends SapphireTest
         $obj = $singl->dbObject('MyIndexedVarchar');
         $record = $obj->fetchRecord('some_searchable_value');
 
+        // echo '<pre>';print_r("From test: " . $record->MyIndexedVarchar);die();
         $this->assertNotEmpty($record);
         $this->assertEquals("some text text", $record->MyText);
         $this->assertEquals("some_searchable_value", $record->MyIndexedVarchar);
         $this->assertEquals("some_searchable_value", $record->dbObject('MyIndexedVarchar')->getValue());
-        $this->assertEmpty($record->dbObject('MyIndexedVarchar')->getEncryptionException());
+
+        // Also search our super getter method
+        $recordAlt = Test_EncryptedModel::getByBlindIndex('MyIndexedVarchar', 'some_searchable_value');
+        $this->assertNotEmpty($record);
+        $this->assertEquals($recordAlt->ID, $record->ID);
+
+        // Can we get a list ?
+        $list = Test_EncryptedModel::getAllByBlindIndex('MyIndexedVarchar', 'some_searchable_value');
+        $this->assertInstanceOf(DataList::class, $list);
 
         $record = $obj->fetchRecord('some_unset_value');
         $this->assertEmpty($record);
