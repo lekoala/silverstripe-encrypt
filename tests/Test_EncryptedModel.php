@@ -36,7 +36,7 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "MyText" => EncryptedDBText::class,
         "MyHTMLText" => EncryptedDBHTMLText::class,
         "MyVarchar" => EncryptedDBVarchar::class,
-        "MyNumber" => EncryptedNumberField::class,
+        "MyNumber" => EncryptedNumberField::class . '(["output_size" => 4, "domain_size" => 10])',
         "MyIndexedVarchar" => EncryptedDBField::class,
     ];
 

@@ -13,6 +13,11 @@ use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
 trait HasEncryption
 {
     /**
+     * @var Exception
+     */
+    protected $encryptionException;
+
+    /**
      * @param CipherSweet $engine
      * @return EncryptedField
      */
@@ -23,6 +28,14 @@ trait HasEncryption
         }
         $encryptedField = new EncryptedField($engine, $this->tableName, $this->name);
         return $encryptedField;
+    }
+
+    /**
+     * @return Exception
+     */
+    public function getEncryptionException()
+    {
+        return $this->encryptionException;
     }
 
     /**
@@ -55,6 +68,7 @@ trait HasEncryption
             try {
                 $this->value = $this->getEncryptedField()->decryptValue($value);
             } catch (InvalidCiphertextException $ex) {
+                $this->encryptionException = $ex;
                 // rotate backend ?
                 if (EncryptHelper::getAutomaticRotation()) {
                     $encryption = EncryptHelper::getEncryption($value);
@@ -65,6 +79,7 @@ trait HasEncryption
                     $this->value = $value;
                 }
             } catch (Exception $ex) {
+                $this->encryptionException = $ex;
                 // We cannot decrypt
                 $this->value = $this->nullValue();
             }

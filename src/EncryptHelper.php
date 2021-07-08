@@ -3,20 +3,24 @@
 namespace LeKoala\Encrypt;
 
 use Exception;
-use League\Csv\InvalidArgument;
+use InvalidArgumentException;
 use SilverStripe\Assets\File;
 use ParagonIE\ConstantTime\Hex;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Core\Environment;
 use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\FieldType\DBText;
 use SilverStripe\ORM\FieldType\DBVarchar;
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\FieldType\DBHTMLText;
-use ParagonIE\CipherSweet\Backend\BoringCrypto;
+use SilverStripe\ORM\FieldType\DBComposite;
 use ParagonIE\CipherSweet\Backend\FIPSCrypto;
+use ParagonIE\CipherSweet\Backend\BoringCrypto;
 use ParagonIE\CipherSweet\Backend\ModernCrypto;
 use ParagonIE\CipherSweet\Contract\BackendInterface;
+use ParagonIE\CipherSweet\Planner\FieldIndexPlanner;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
-use SilverStripe\ORM\FieldType\DBComposite;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -25,6 +29,10 @@ use SilverStripe\ORM\FieldType\DBComposite;
  */
 class EncryptHelper
 {
+    use Configurable;
+
+    const DEFAULT_OUTPUT_SIZE = 15;
+    const DEFAULT_DOMAIN_SIZE = 127;
     const BORING = "brng";
     const MODERN = "nacl";
     const FIPS = "fips";
@@ -40,21 +48,29 @@ class EncryptHelper
     protected static $field_cache = [];
 
     /**
+     * @config
      * @var string
      */
-    protected static $forcedEncryption = null;
+    protected static $forced_encryption = null;
 
     /**
+     * @config
      * @var bool
      */
-    protected static $automaticRotation = true;
+    protected static $automatic_rotation = true;
+
+    /**
+     * @config
+     * @var array
+     */
+    protected static $blind_indexes_sizes = [];
 
     /**
      * @return string
      */
     public static function getForcedEncryption()
     {
-        return self::$forcedEncryption;
+        return self::config()->forced_encryption;
     }
 
     /**
@@ -64,9 +80,9 @@ class EncryptHelper
     public static function setForcedEncryption($forcedEncryption)
     {
         if (!in_array($forcedEncryption, ["brng", "nacl", "fips"])) {
-            throw new InvalidArgument("$forcedEncryption is not supported");
+            throw new InvalidArgumentException("$forcedEncryption is not supported");
         }
-        self::$forcedEncryption = $forcedEncryption;
+        self::config()->forced_encryption = $forcedEncryption;
     }
 
     /**
@@ -75,7 +91,7 @@ class EncryptHelper
      */
     public static function getAutomaticRotation()
     {
-        return self::$automaticRotation;
+        return self::config()->automatic_rotation;
     }
 
     /**
@@ -84,7 +100,59 @@ class EncryptHelper
      */
     public static function setAutomaticRotation($automaticRotation)
     {
-        self::$automaticRotation = $automaticRotation;
+        self::config()->automatic_rotation = $automaticRotation;
+    }
+
+    /**
+     * @link https://ciphersweet.paragonie.com/php/blind-index-planning
+     * @return array
+     */
+    public static function planIndexSizes()
+    {
+        $dataObjects = ClassInfo::subclassesFor(DataObject::class);
+        $indexes = [];
+        foreach ($dataObjects as $dataObject) {
+            if (!class_uses(HasEncryptedFields::class)) {
+                continue;
+            }
+            $index[$dataObject] = self::planIndexSizesForClass($dataObject);
+        }
+        return $indexes;
+    }
+
+    /**
+     * @param string $dataObject
+     * @return array
+     */
+    public static function planIndexSizesForClass($class)
+    {
+        $sng = singleton($class);
+        $encryptedFields = self::getEncryptedFields($class);
+        // By default, plan for a large number of rows
+        $estimatedPopulation = $class::config()->estimated_population ?? PHP_INT_MAX;
+        $planner = new FieldIndexPlanner();
+        $planner->setEstimatedPopulation($estimatedPopulation);
+        $indexes = [];
+        foreach ($encryptedFields as $encryptedField => $encryptedClass) {
+            if (!is_subclass_of($encryptedClass, DBComposite::class)) {
+                continue;
+            }
+            $dbObject = $sng->dbObject($encryptedField);
+            $outputSize = $dbObject->getOutputSize() ?? self::DEFAULT_OUTPUT_SIZE;
+            $domainSize = $dbObject->getDomainSize() ?? self::DEFAULT_DOMAIN_SIZE;
+            $planner->addExistingIndex($encryptedField . "BlindIndex", $outputSize, $domainSize);
+            // The smaller of the two values will be used to compute coincidences
+            $indexes[] = ["L" => $outputSize, "K" => $domainSize];
+        }
+        $coincidenceCount = round(self::coincidenceCount($indexes, $estimatedPopulation));
+        $recommended = $planner->recommend();
+        $recommended['indexes'] = count($indexes);
+        // If there is no coincidence, it means the index is not safe for use because it means
+        // that two identical plaintexts will give the same output
+        $recommended['coincidence_count'] = $coincidenceCount;
+        $recommended['coincidence_ratio'] = $coincidenceCount / $estimatedPopulation * 100;
+        $recommended['estimated_population'] = $estimatedPopulation;
+        return $recommended;
     }
 
     /**
@@ -210,8 +278,8 @@ class EncryptHelper
             return self::$ciphersweet;
         }
         $provider = self::getProviderWithKey();
-        if (self::$forcedEncryption) {
-            $backend = self::getBackendForEncryption(self::$forcedEncryption);
+        if (self::getForcedEncryption()) {
+            $backend = self::getBackendForEncryption(self::getForcedEncryption());
         } else {
             $backend = self::getRecommendedBackend();
         }
@@ -328,23 +396,38 @@ class EncryptHelper
     }
 
     /**
+     * Filters parameters from database class config
+     * @return string
+     */
+    protected static function filterDbClass($dbClass)
+    {
+        $pos = strpos($dbClass, '(');
+        if ($pos !== false) {
+            $dbClass = substr($dbClass, 0, $pos);
+        }
+        return $dbClass;
+    }
+
+    /**
      * @param string $class
-     * @param bool $dbFields
-     * @return array
+     * @param bool $dbFields Return actual database field value instead of field name
+     * @return array An associative array with the name of the field as key and the class as value
      */
     public static function getEncryptedFields($class, $dbFields = false)
     {
         $fields = $class::config()->db;
         $list = [];
         foreach ($fields as $field => $dbClass) {
+            $dbClass = self::filterDbClass($dbClass);
             $key = $class . '_' . $field;
             if (isset($fields[$field])) {
                 self::$field_cache[$key] = strpos($dbClass, 'Encrypted') !== false;
                 if (self::$field_cache[$key]) {
+                    // Sometimes we need actual db field name
                     if ($dbFields && is_subclass_of($dbClass, DBComposite::class)) {
-                        $list[] = $field . "Value";
+                        $list[$field . "Value"] = $dbClass;
                     } else {
-                        $list[] = $field;
+                        $list[$field] = $dbClass;
                     }
                 }
             } else {
@@ -405,9 +488,10 @@ class EncryptHelper
     /**
      * Compute Blind Index Information Leaks
      *
+     * @link https://ciphersweet.paragonie.com/php/blind-index-planning
      * @link https://ciphersweet.paragonie.com/security
-     * @param array $indexes
-     * @param int $R
+     * @param array $indexes an array of L (output size) / K (domaine size) pairs
+     * @param int $R the number of encrypted records that use this blind index
      * @return float
      */
     public static function coincidenceCount(array $indexes, $R)

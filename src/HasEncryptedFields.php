@@ -3,14 +3,16 @@
 namespace LeKoala\Encrypt;
 
 use Exception;
+use SodiumException;
 use SilverStripe\ORM\DataObject;
 use ParagonIE\CipherSweet\CipherSweet;
+use SilverStripe\ORM\DataObjectSchema;
 use ParagonIE\CipherSweet\EncryptedRow;
-use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
-use ParagonIE\CipherSweet\KeyRotation\RowRotator;
+use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
-use SodiumException;
+use ParagonIE\CipherSweet\KeyRotation\RowRotator;
+use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
 
 /**
  * This trait helps to override the default getField method in order to return
@@ -27,9 +29,28 @@ use SodiumException;
  * {
  *     return $this->setEncryptedField($fieldName, $val);
  * }
+ *
+ * @property array $record
+ * @method DBField dbObject()
  */
 trait HasEncryptedFields
 {
+    /**
+     * This value will return exactly one record, taking care of false positives
+     *
+     * @param string $field
+     * @param string $value
+     * @return $this
+     */
+    public static function getByBlindIndex($field, $value)
+    {
+        /** @var DataObject $singl  */
+        $singl = singleton(get_called_class());
+        /** @var EncryptedDBField $obj  */
+        $obj = $singl->dbObject($field);
+        return $obj->fetchRecord($value);
+    }
+
     /**
      * Check if the record needs to be reencrypted with a new key or algo
      * @param CipherSweet $old
@@ -75,7 +96,7 @@ trait HasEncryptedFields
         $newRow = $this->getEncryptedRow($new);
 
         $rotator = new RowRotator($oldRow, $newRow);
-        $encryptedFields = EncryptHelper::getEncryptedFields($class, true);
+        $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class, true));
         $query = new SQLSelect($encryptedFields, $tableName, [$columnIdentifier => $this->ID]);
         $ciphertext = $query->execute()->first();
         $ciphertext = EncryptHelper::removeNulls($ciphertext);
@@ -105,8 +126,8 @@ trait HasEncryptedFields
         $class = get_class($this);
         $tableName = DataObject::getSchema()->tableName($class);
         $encryptedRow = new EncryptedRow($engine, $tableName);
-        $fields = EncryptHelper::getEncryptedFields($class);
-        foreach ($fields as $field) {
+        $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class));
+        foreach ($encryptedFields as $field) {
             /** @var EncryptedField $encryptedField */
             $encryptedField = $this->dbObject($field)->getEncryptedField($engine);
             $blindIndexes = $encryptedField->getBlindIndexObjects();
@@ -129,6 +150,9 @@ trait HasEncryptedFields
      */
     public function getEncryptedField($field)
     {
+        // We cannot check directly $this->record[$field] because it may
+        // contain encrypted value that needs to be decoded first
+
         // If it's an encrypted field
         if ($this->hasEncryptedField($field)) {
             $fieldObj = $this->dbObject($field);
@@ -149,10 +173,13 @@ trait HasEncryptedFields
     {
         // If it's an encrypted field
         if ($this->hasEncryptedField($field) && $val && is_scalar($val)) {
+            /** @var DataObjectSchema $schema  */
             $schema = static::getSchema();
 
             // In case of composite fields, return the DBField object
-            if ($schema->compositeField(static::class, $field)) {
+            // Eg: if we call MyIndexedVarchar instead of MyIndexedVarcharValue
+            $compositeClass = $schema->compositeField(static::class, $field);
+            if ($compositeClass) {
                 $fieldObj = $this->dbObject($field);
                 $fieldObj->setValue($val);
                 // Keep a reference for isChange checks

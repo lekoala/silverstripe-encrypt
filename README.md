@@ -11,6 +11,7 @@ This module use [ciphersweet](https://github.com/paragonie/ciphersweet) under th
 Thanks to CipherSweet, your encrypted data is searchable!
 
 NOTE: Current version of this module has incompatibilities for composite fields with branch 2. Plan to rotate your values or keep using previous version.
+
 NOTE: Branch 2 of this module is not compatible with previous versions. Please use branch 1 if you need the previous encryption system.
 
 # How to use
@@ -74,6 +75,42 @@ won't be encoded automatically. But you can most certainly do $myObject->dbObjec
 but that's really not convenient in my opinion.
 Maybe I'll find some way to avoid overriding the get/set field methods, but I haven't been succesful so far.
 
+# A quick note about indexes
+
+Please note that this module doesn't create indexes automatically for your blind indexes. Since you
+are probably going to use them to search your records, it's a good idea to add a database index to avoid
+full table scan.
+
+NOTE: blind indexes can have false positives (two records get the same index) and therefore, you cannot
+be sure that a given blind index will only return one record.
+
+The function `EncryptHelper::planIndexSizeForClass` will help you to set the right values. It returns
+an array that is similar to this:
+
+```php
+Array
+(
+    [min] => 2
+    [max] => 32
+    [indexes] => 2
+    [coincidence_count] => 8589934592
+    [coincidence_ratio] => 9.3132257461548E-8
+    [estimated_population] => 9223372036854775807
+)
+```
+
+For each encrypted class, you can set the following config values:
+
+- estimated_population: the number of expected records. 
+The higher the population, the higher is the coincidence count (which makes your blind index safe to use)
+- output_size and domain_size: these settings are configured at field level.
+
+```php
+private static $db = [
+    "MyNumber" => EncryptedNumberField::class . '(["output_size" => 4, "domain_size" => 10, "index_size" => 32])',
+];
+```
+
 # Simple field types
 
 This module provides three fields without blind indexes (if you need a blind index, see next point):
@@ -91,7 +128,7 @@ or a partial value based on what kind of index you created.
 
 To search using an index, use the EncryptedDBField instance
 
-```yml
+```php
 $singl = singleton(MyModel::class);
 $obj = $singl->dbObject('MyEncryptedField');
 $searchValue = $obj->getSearchValue($value);
@@ -100,17 +137,25 @@ $query = MyModel::get()->where(array('MyEncryptedFieldBlindIndex = ?' => $search
 
 Or use shortcut
 
-```yml
+```php
 $singl = singleton(MyModel::class);
 $obj = $singl->dbObject('MyEncryptedField');
 $record = $obj->fetchRecord($value);
 ```
 
+Or even better
+
+```php
+$record = MyModel::getByBlindIndex("MyEncryptedField", $value);
+```
+
 Or use search filter
 
-```yml
+```php
 $record = MyModel::get()->filter('MyEncryptedField:Encrypted', $searchValue)->first();
 ```
+
+NOTE: the search filter can return false positives, the `getByBlindIndex` method is preferred.
 
 It is highly recommended to set indexes on your fields that use blind indexes. The convention is as follows:
 {Name}BlindIndex and {Name}LastFourBlindIndex
@@ -175,10 +220,22 @@ if($result) {
 }
 ```
 
+# Planning index sizes
+
+If you are using blind indexes, you might need to plan their sizes.
+
+It is highly recommended to read the following guide about blind index planning.
+https://ciphersweet.paragonie.com/php/blind-index-planning
+
+This modules gives you some tools and defaults that helps you to have
+your indexes properly configured.
+
+By default, blind indexes will have a size of 32 chars which allow a large numbers
+of records in your table with a really low 
+
 # Todo
 
 - Figure out a way to encrypt the Email field for members
-- Do not hardcode index sizes
 - Fetch key from external service + cache
 
 # Compatibility

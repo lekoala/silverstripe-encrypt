@@ -166,12 +166,16 @@ class EncryptTest extends SapphireTest
     public function testSearch()
     {
         $singl = singleton(Test_EncryptedModel::class);
+
+        /** @var EncryptedDBField $obj  */
         $obj = $singl->dbObject('MyIndexedVarchar');
         $record = $obj->fetchRecord('some_searchable_value');
 
         $this->assertNotEmpty($record);
-        $this->assertEquals(1, $record->ID);
-        $this->assertNotEquals(2, $record->ID);
+        $this->assertEquals("some text text", $record->MyText);
+        $this->assertEquals("some_searchable_value", $record->MyIndexedVarchar);
+        $this->assertEquals("some_searchable_value", $record->dbObject('MyIndexedVarchar')->getValue());
+        $this->assertEmpty($record->dbObject('MyIndexedVarchar')->getEncryptionException());
 
         $record = $obj->fetchRecord('some_unset_value');
         $this->assertEmpty($record);
@@ -183,7 +187,7 @@ class EncryptTest extends SapphireTest
         // $searchParams = $obj->getSearchParams('6789', 'LastFourBlindIndex');
         // print_r($searchParams);
         $this->assertNotEmpty($record, "Nothing found for $searchValue");
-        $this->assertEquals(1, $record->ID);
+        $this->assertEquals("0123456789", $record->MyNumber);
     }
 
     public function testSearchFilter()
@@ -208,6 +212,37 @@ class EncryptTest extends SapphireTest
 
         $result = $model->rotateEncryption($old);
         $this->assertTrue($result);
+    }
+
+    public function testCompositeOptions()
+    {
+        $model = $this->getTestModel();
+
+        /** @var EncryptedDBField $myNumber */
+        $myNumber = $model->dbObject('MyNumber');
+
+        $this->assertEquals(10, $myNumber->getDomainSize());
+        $this->assertEquals(4, $myNumber->getOutputSize());
+        $this->assertEquals(EncryptedDBField::LARGE_INDEX_SIZE, $myNumber->getIndexSize());
+
+        /** @var EncryptedDBField $MyIndexedVarchar */
+        $MyIndexedVarchar = $model->dbObject('MyIndexedVarchar');
+
+        // Default config values
+        $this->assertEquals(EncryptHelper::DEFAULT_DOMAIN_SIZE, $MyIndexedVarchar->getDomainSize());
+        $this->assertEquals(EncryptHelper::DEFAULT_OUTPUT_SIZE, $MyIndexedVarchar->getOutputSize());
+        $this->assertEquals(EncryptedDBField::LARGE_INDEX_SIZE, $MyIndexedVarchar->getIndexSize());
+    }
+
+    public function testIndexPlanner()
+    {
+        $sizes = EncryptHelper::planIndexSizesForClass(Test_EncryptedModel::class);
+        $this->assertNotEmpty($sizes);
+        $this->assertArrayHasKey("min", $sizes);
+        $this->assertArrayHasKey("max", $sizes);
+        $this->assertArrayHasKey("indexes", $sizes);
+        $this->assertArrayHasKey("estimated_population", $sizes);
+        $this->assertArrayHasKey("coincidence_count", $sizes);
     }
 
     public function testFixture()
@@ -387,6 +422,7 @@ class EncryptTest extends SapphireTest
     {
         $model = new Test_EncryptedModel();
 
+        // echo "*** start \n";
         // Let's write some stuff
         $someText = 'some text';
         $model->MyText = $someText . ' text';
@@ -394,6 +430,8 @@ class EncryptTest extends SapphireTest
         $model->MyVarchar = 'encrypted varchar value';
         $model->MyIndexedVarchar = "some_searchable_value";
         $model->MyNumber = "0123456789";
+        // All fields are marked as changed, including "hidden" fields
+        // MyNumber will mark as changed MyNumber, MyNumberValue, MuNumberBlindIndex, MyNumberLastFourBlindIndex
         // echo '<pre>';
         // print_r(array_keys($model->getChangedFields()));
         // die();

@@ -17,6 +17,21 @@ use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
  */
 class EncryptedDBField extends DBComposite
 {
+    const LARGE_INDEX_SIZE = 32;
+    const SMALL_INDEX_SIZE = 16;
+
+    /**
+     * @config
+     * @var int
+     */
+    private static $output_size = 15;
+
+    /**
+     * @config
+     * @var int
+     */
+    private static $domain_size = 127;
+
     /**
      * @param array
      */
@@ -24,6 +39,65 @@ class EncryptedDBField extends DBComposite
         "Value" => "Varchar(191)",
         "BlindIndex" => 'Varchar(32)',
     );
+
+    /**
+     * @var Exception
+     */
+    protected $encryptionException;
+
+    /**
+     * @return Exception
+     */
+    public function getEncryptionException()
+    {
+        return $this->encryptionException;
+    }
+
+    /**
+     * Output size is the number of bits (not bytes) of a blind index.
+     * Eg: 4 for a 4 digits year
+     * Note: the larger the output size, the smaller the index should be
+     * @return int
+     */
+    public function getOutputSize()
+    {
+        if (array_key_exists('output_size', $this->options)) {
+            $outputSize = $this->options['output_size'];
+        } else {
+            $outputSize = static::config()->get('output_size');
+        }
+        return $outputSize;
+    }
+
+    /**
+     * Input domain is the set of all possible distinct inputs.
+     * Eg : 4 digits have 10,000 possible values (10^4). The log (base 2) of 10,000 is 13.2877; you would want to always round up (so 14).
+     * @return int
+     */
+    public function getDomainSize()
+    {
+        if (array_key_exists('domain_size', $this->options)) {
+            $domainSize = $this->options['domain_size'];
+        } else {
+            $domainSize = static::config()->get('domain_size');
+        }
+        return $domainSize;
+    }
+
+    /**
+     * @param int $default
+     * @return int
+     */
+    public function getIndexSize($default = null)
+    {
+        if (array_key_exists('index_size', $this->options)) {
+            return $this->options['index_size'];
+        }
+        if ($default) {
+            return $default;
+        }
+        return self::LARGE_INDEX_SIZE;
+    }
 
     /**
      * @return string
@@ -66,9 +140,10 @@ class EncryptedDBField extends DBComposite
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
         }
+        $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
         // fieldName needs to match exact db name for row rotator to work properly
         $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . "Value"))
-            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], 32));
+            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], $indexSize));
         return $encryptedField;
     }
 
@@ -91,7 +166,6 @@ class EncryptedDBField extends DBComposite
             $blindIndexes = [];
         }
 
-
         $manipulation['fields'][$this->name . 'Value'] = $encryptedValue;
         $manipulation['fields'][$this->name . 'BlindIndex'] = $blindIndexes[$this->name . "BlindIndex"] ?? null;
     }
@@ -110,10 +184,10 @@ class EncryptedDBField extends DBComposite
      * Return the blind index value to search in the database
      *
      * @param string $val The unencrypted value
-     * @param string $index The blind index. Defaults to full index
+     * @param string $indexSuffix The blind index. Defaults to full index
      * @return string
      */
-    public function getSearchValue($val, $index = 'BlindIndex')
+    public function getSearchValue($val, $indexSuffix = 'BlindIndex')
     {
         if (!$this->tableName && $this->record) {
             $this->tableName = DataObject::getSchema()->tableName(get_class($this->record));
@@ -125,7 +199,7 @@ class EncryptedDBField extends DBComposite
             throw new Exception("Name not set for search value");
         }
         $field = $this->getEncryptedField();
-        $index = $field->getBlindIndex($val, $this->name . $index);
+        $index = $field->getBlindIndex($val, $this->name . $indexSuffix);
         return $index;
     }
 
@@ -133,31 +207,45 @@ class EncryptedDBField extends DBComposite
      * Return a ready to use array params for a where clause
      *
      * @param string $val The unencrypted value
-     * @param string $index The blind index. Defaults to full index
+     * @param string $indexSuffix The blind index. Defaults to full index
      * @return array
      */
-    public function getSearchParams($val, $index = null)
+    public function getSearchParams($val, $indexSuffix = null)
     {
-        if (!$index) {
-            $index = 'BlindIndex';
+        if (!$indexSuffix) {
+            $indexSuffix = 'BlindIndex';
         }
-        $searchValue = $this->getSearchValue($val, $index);
-        $blindIndexField = $this->name . $index;
+        $searchValue = $this->getSearchValue($val, $indexSuffix);
+        $blindIndexField = $this->name . $indexSuffix;
         return array($blindIndexField . ' = ?' => $searchValue);
     }
 
     /**
      * @param string $val The unencrypted value
-     * @param string $index The blind index. Defaults to full index
+     * @param string $indexSuffix The blind index. Defaults to full index
      * @return DataObject
      */
-    public function fetchRecord($val, $index = null)
+    public function fetchRecord($val, $indexSuffix = null)
     {
         if (!$this->record) {
             throw new Exception("No record set for this field");
         }
         $class = get_class($this->record);
-        return $class::get()->where($this->getSearchParams($val, $index))->first();
+
+        // A blind index can return false positives
+        $list = $class::get()->where($this->getSearchParams($val, $indexSuffix));
+        return $list->first();
+        $name = $this->name;
+        foreach ($list as $record) {
+            if ($record->dbObject($name)->getValue() == $val) {
+                return $record;
+            }
+        }
+        // throw exception if there where matches but none with the right value
+        if ($list->count()) {
+            throw new Exception($list->count() . " records were found but none matched the right value");
+        }
+        return false;
     }
 
     public function setValue($value, $record = null, $markChanged = true)
@@ -185,7 +273,6 @@ class EncryptedDBField extends DBComposite
             }
         }
 
-        $encryptedField = $this->getEncryptedField();
         // Value will store the decrypted value
         if ($value instanceof EncryptedDBField) {
             $this->value = $value->getValue();
@@ -196,6 +283,7 @@ class EncryptedDBField extends DBComposite
                 try {
                     $this->value = $this->getEncryptedField()->decryptValue($encryptedValue);
                 } catch (InvalidCiphertextException $ex) {
+                    $this->encryptionException = $ex;
                     // rotate backend ?
                     if (EncryptHelper::getAutomaticRotation()) {
                         $encryption = EncryptHelper::getEncryption($encryptedValue);
@@ -206,6 +294,7 @@ class EncryptedDBField extends DBComposite
                         $this->value = $encryptedValue;
                     }
                 } catch (Exception $ex) {
+                    $this->encryptionException = $ex;
                     // We cannot decrypt
                     $this->value = $this->nullValue();
                 }
