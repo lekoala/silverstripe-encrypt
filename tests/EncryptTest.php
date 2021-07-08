@@ -3,19 +3,24 @@
 namespace LeKoala\Encrypt\Test;
 
 use Exception;
+use SilverStripe\ORM\DB;
 use SilverStripe\Assets\File;
+use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use LeKoala\Encrypt\EncryptHelper;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Security\Security;
 use LeKoala\Encrypt\EncryptedDBField;
-use LeKoala\Encrypt\HasEncryptedFields;
+use LeKoala\Encrypt\MemberKeyProvider;
 use ParagonIE\CipherSweet\CipherSweet;
-use SilverStripe\ORM\DataList;
-use SilverStripe\ORM\DB;
+use LeKoala\Encrypt\HasEncryptedFields;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
+use ParagonIE\CipherSweet\KeyProvider\StringProvider;
+use ParagonIE\CipherSweet\Contract\MultiTenantSafeBackendInterface;
+use SilverStripe\ORM\ArrayList;
 
 /**
  * Test for Encrypt
@@ -38,6 +43,7 @@ class EncryptTest extends SapphireTest
 
     protected static $extra_dataobjects = [
         Test_EncryptedModel::class,
+        Test_EncryptionKey::class,
     ];
 
     public function setUp()
@@ -110,11 +116,63 @@ class EncryptTest extends SapphireTest
     }
 
     /**
+     * @return Test_EncryptedModel
+     */
+    public function getAdminTestModel()
+    {
+        return $this->objFromFixture(Test_EncryptedModel::class, 'admin_record');
+    }
+
+    /**
+     * @return Test_EncryptedModel
+     */
+    public function getUser1TestModel()
+    {
+        return $this->objFromFixture(Test_EncryptedModel::class, 'user1_record');
+    }
+
+    /**
+     * @return Test_EncryptedModel
+     */
+    public function getUser2TestModel()
+    {
+        return $this->objFromFixture(Test_EncryptedModel::class, 'user2_record');
+    }
+
+    /**
      * @return Member
      */
     public function getAdminMember()
     {
         return $this->objFromFixture(Member::class, 'admin');
+    }
+
+    /**
+     * @return Member
+     */
+    public function getUser1Member()
+    {
+        return $this->objFromFixture(Member::class, 'user1');
+    }
+
+    /**
+     * @return Member
+     */
+    public function getUser2Member()
+    {
+        return $this->objFromFixture(Member::class, 'user2');
+    }
+
+    /**
+     * @return DataList|Member[]
+     */
+    public function getAllMembers()
+    {
+        return new ArrayList([
+            $this->getAdminMember(),
+            $this->getUser1Member(),
+            $this->getUser2Member(),
+        ]);
     }
 
     /**
@@ -299,10 +357,16 @@ class EncryptTest extends SapphireTest
         // regular fields are not affected
         $this->assertEquals('demo', $model->Name);
 
+        // automatically rotated fields store an exception
+        $this->assertNotEmpty($model->dbObject("MyVarchar")->getEncryptionException());
+
         // get value
         $this->assertEquals($varcharValue, $model->dbObject('MyVarchar')->getValue());
         // encrypted fields work transparently when using trait
         $this->assertEquals($varcharValue, $model->MyVarchar);
+
+        // since dbobject cache can be cleared, exception is gone
+        $this->assertEmpty($model->dbObject("MyVarchar")->getEncryptionException());
 
 
         $this->assertTrue($model->dbObject('MyIndexedVarchar') instanceof EncryptedDBField);
@@ -538,5 +602,102 @@ class EncryptTest extends SapphireTest
         $encryptedFile->encryptFileIfNeeded();
 
         $this->assertTrue($encryptedFile->isEncrypted());
+    }
+
+    /**
+     * @group multi-tenant
+     */
+    public function testMultiTenantProvider()
+    {
+        $admin = $this->getAdminMember();
+        $user1 = $this->getUser1Member();
+        $user2 = $this->getUser2Member();
+        $members = $this->getAllMembers();
+        $tenants = [];
+        foreach ($members as $member) {
+            $key = Test_EncryptionKey::getForMember($member->ID);
+            if ($key) {
+                $tenants[$member->ID] = new StringProvider($key);
+            }
+        }
+        $adminModel = $this->getAdminTestModel();
+        $user1Model = $this->getUser1TestModel();
+        $user2Model = $this->getUser2TestModel();
+
+        Security::setCurrentUser($admin);
+        $provider = new MemberKeyProvider($tenants);
+
+        EncryptHelper::clearCipherSweet();
+        $cs = EncryptHelper::getCipherSweet($provider);
+
+        $this->assertInstanceOf(MultiTenantSafeBackendInterface::class, $cs->getBackend());
+
+        $string = "my content";
+        $record = new Test_EncryptedModel();
+        $record->MyText = $string;
+        // We need to set active tenant ourselves because orm records fields one by one
+        // it doesn't go through injectMetadata
+        $record->MemberID = Security::getCurrentUser()->ID ?? 0;
+        $record->write();
+
+        // echo '<pre>';
+        // print_r($this->fetchRawData(Test_EncryptedModel::class, $record->ID));
+        // die();
+
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $record->ID)->first();
+
+        // He can decode
+        $this->assertEquals($string, $freshRecord->MyText);
+
+        // He can also decode his content from the db
+        $adminRecord = Test_EncryptedModel::get()->filter('ID', $adminModel->ID)->first();
+        $this->assertEquals($string, $adminRecord->MyText);
+
+        // He cannot decode
+        Security::setCurrentUser($user1);
+        // We don't need to set active tenant because our MemberKeyProvider reads currentUser automatically
+        // $provider->setActiveTenant($user1->ID);
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $record->ID)->first();
+        $this->assertNotEquals($string, $freshRecord->MyText);
+
+        // Test tenant from row
+        $this->assertEquals($admin->ID, $cs->getTenantFromRow($adminModel->toMap()));
+        $this->assertEquals($user1->ID, $cs->getTenantFromRow($user1Model->toMap()));
+        $this->assertEquals($user2->ID, $cs->getTenantFromRow($user2Model->toMap()));
+
+        // Current user can decode what he can
+        Security::setCurrentUser($admin);
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $adminModel->ID)->first();
+        $this->assertEquals($string, $freshRecord->MyText, "Invalid content for admin model #{$adminModel->ID}");
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $user2Model->ID)->first();
+        $this->assertNotEquals($string, $freshRecord->MyText, "Invalid content for user2 model #{$user2Model->ID}");
+
+        // Thanks to getTenantFromRow we should be able to rotate encryption
+        // rotate from admin to user2
+        Security::setCurrentUser($user2);
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $adminModel->ID)->first();
+        $freshRecord->MemberID = $user2->ID;
+        $freshRecord->write();
+        $this->assertNotEquals($string, $freshRecord->MyText);
+        // We can keep the same provider but we need to clone it and change the active tenant
+        $cs->setActiveTenant($user2->ID);
+
+        // clone will not deep clone the key provider with the active tenant
+        // $old = clone $cs;
+        $clonedProvider = clone $provider;
+        $clonedProvider->setForcedTenant($admin->ID);
+        $old = EncryptHelper::getEngineWithProvider(EncryptHelper::getBackendForEncryption("brng"), $clonedProvider);
+
+        $freshRecord->rotateEncryption($old);
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $adminModel->ID)->first();
+        $this->assertEquals($string, $freshRecord->MyText);
+
+        // Admin can't read anymore, don't forget to refresh record from db
+        Security::setCurrentUser($admin);
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $adminModel->ID)->first();
+        $this->assertNotEquals($string, $freshRecord->MyText);
+
+        // Cleanup
+        EncryptHelper::clearCipherSweet();
     }
 }

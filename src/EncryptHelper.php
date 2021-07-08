@@ -21,6 +21,7 @@ use ParagonIE\CipherSweet\Backend\ModernCrypto;
 use ParagonIE\CipherSweet\Contract\BackendInterface;
 use ParagonIE\CipherSweet\Planner\FieldIndexPlanner;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
+use ParagonIE\CipherSweet\Contract\KeyProviderInterface;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -38,6 +39,18 @@ class EncryptHelper
     const FIPS = "fips";
 
     /**
+     * @config
+     * @var string
+     */
+    private static $forced_encryption = null;
+
+    /**
+     * @config
+     * @var bool
+     */
+    private static $automatic_rotation = true;
+
+    /**
      * @var CipherSweet
      */
     protected static $ciphersweet;
@@ -46,24 +59,6 @@ class EncryptHelper
      * @var array
      */
     protected static $field_cache = [];
-
-    /**
-     * @config
-     * @var string
-     */
-    protected static $forced_encryption = null;
-
-    /**
-     * @config
-     * @var bool
-     */
-    protected static $automatic_rotation = true;
-
-    /**
-     * @config
-     * @var array
-     */
-    protected static $blind_indexes_sizes = [];
 
     /**
      * @return string
@@ -189,7 +184,19 @@ class EncryptHelper
      */
     public static function getKey()
     {
-        $key = Environment::getEnv('ENCRYPTION_KEY');
+        // Try our path variable
+        $keyPath = Environment::getEnv('ENCRYPTION_KEY_PATH');
+        $key = null;
+        if ($keyPath) {
+            $key = file_get_contents($keyPath);
+            if (!$key || !is_string($key)) {
+                throw new Exception("Could not read key from $keyPath");
+            }
+        }
+        // Try regular env key
+        if (!$key) {
+            $key = Environment::getEnv('ENCRYPTION_KEY');
+        }
         if (!$key) {
             $key = self::generateKey();
             throw new Exception("Please define an ENCRYPTION_KEY in your environment. You can use this one: $key");
@@ -270,14 +277,27 @@ class EncryptHelper
     }
 
     /**
+     * @param BackendInterface $backend
+     * @param KeyProviderInterface $provider
      * @return CipherSweet
      */
-    public static function getCipherSweet()
+    public static function getEngineWithProvider(BackendInterface $backend, KeyProviderInterface $provider)
+    {
+        return new CipherSweet($provider, $backend);
+    }
+
+    /**
+     * @param KeyProviderInterface $provider
+     * @return CipherSweet
+     */
+    public static function getCipherSweet($provider = null)
     {
         if (self::$ciphersweet) {
             return self::$ciphersweet;
         }
-        $provider = self::getProviderWithKey();
+        if ($provider === null) {
+            $provider = self::getProviderWithKey();
+        }
         if (self::getForcedEncryption()) {
             $backend = self::getBackendForEncryption(self::getForcedEncryption());
         } else {

@@ -11,7 +11,7 @@ use LeKoala\Encrypt\EncryptedDBVarchar;
 use LeKoala\Encrypt\HasEncryptedFields;
 use LeKoala\Encrypt\EncryptedDBHTMLText;
 use LeKoala\Encrypt\EncryptedNumberField;
-use SilverStripe\ORM\FieldType\DBVarchar;
+use SilverStripe\Security\Member;
 
 /**
  * A test model for our encryption
@@ -43,6 +43,7 @@ class Test_EncryptedModel extends DataObject implements TestOnly
     private static $has_one = [
         "RegularFile" => File::class,
         "EncryptedFile" => File::class,
+        "Member" => Member::class,
     ];
 
     private static $indexes = [

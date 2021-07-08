@@ -29,9 +29,6 @@ use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
  * {
  *     return $this->setEncryptedField($fieldName, $val);
  * }
- *
- * @property array $record
- * @method DBField dbObject()
  */
 trait HasEncryptedFields
 {
@@ -108,14 +105,17 @@ trait HasEncryptedFields
 
         $new = EncryptHelper::getCipherSweet();
 
-        $oldRow = $this->getEncryptedRow($old);
-        $newRow = $this->getEncryptedRow($new);
-
-        $rotator = new RowRotator($oldRow, $newRow);
         $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class, true));
         $query = new SQLSelect($encryptedFields, $tableName, [$columnIdentifier => $this->ID]);
         $ciphertext = $query->execute()->first();
-        $ciphertext = EncryptHelper::removeNulls($ciphertext);
+        $ciphertext = array_filter($ciphertext);
+
+        // Get only what we need
+        $oldRow = $this->getEncryptedRow($old, $ciphertext);
+        $newRow = $this->getEncryptedRow($new, $ciphertext);
+
+        $rotator = new RowRotator($oldRow, $newRow);
+
         $indices = null;
         if ($rotator->needsReEncrypt($ciphertext)) {
             list($ciphertext, $indices) = $rotator->prepareForUpdate($ciphertext);
@@ -132,9 +132,10 @@ trait HasEncryptedFields
 
     /**
      * @param CipherSweet $engine
+     * @param array $onlyFields
      * @return EncryptedRow
      */
-    public function getEncryptedRow(CipherSweet $engine = null)
+    public function getEncryptedRow(CipherSweet $engine = null, $onlyFields = [])
     {
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
@@ -144,6 +145,9 @@ trait HasEncryptedFields
         $encryptedRow = new EncryptedRow($engine, $tableName);
         $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class));
         foreach ($encryptedFields as $field) {
+            if (!empty($onlyFields) && !array_key_exists($field, $onlyFields)) {
+                continue;
+            }
             /** @var EncryptedField $encryptedField */
             $encryptedField = $this->dbObject($field)->getEncryptedField($engine);
             $blindIndexes = $encryptedField->getBlindIndexObjects();
