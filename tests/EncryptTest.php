@@ -21,7 +21,6 @@ use ParagonIE\CipherSweet\CipherSweet;
 use LeKoala\Encrypt\HasEncryptedFields;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
-use SilverStripe\i18n\Messages\YamlReader;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
 use ParagonIE\CipherSweet\Contract\MultiTenantSafeBackendInterface;
 
@@ -63,7 +62,7 @@ class EncryptTest extends SapphireTest
         }
 
         // The rows are already decrypted and changed due to the fixtures going through the ORM layer
-        // $result = DB::query("SELECT * FROM EncryptedModel");
+        $result = DB::query("SELECT * FROM EncryptedModel");
         // echo '<pre>';
         // print_r(iterator_to_array($result));
         // die();
@@ -699,6 +698,7 @@ class EncryptTest extends SapphireTest
 
         // He can also decode his content from the db
         $adminRecord = Test_EncryptedModel::get()->filter('ID', $adminModel->ID)->first();
+        // echo '<pre>';print_r($adminRecord);die();
         $this->assertEquals($string, $adminRecord->MyText);
 
         // He cannot decode

@@ -175,6 +175,7 @@ trait HasEncryptedFields
 
         // If it's an encrypted field
         if ($this->hasEncryptedField($field)) {
+            /** @var EncryptedDBField $fieldObj  */
             $fieldObj = $this->dbObject($field);
             // Set decrypted value directly on the record for later use
             // it can be fetched by dbObject calls
@@ -201,6 +202,7 @@ trait HasEncryptedFields
             // Eg: if we call MyIndexedVarchar instead of MyIndexedVarcharValue
             $compositeClass = $schema->compositeField(static::class, $field);
             if ($compositeClass) {
+                /** @var EncryptedDBField $fieldObj  */
                 $fieldObj = $this->dbObject($field);
                 $fieldObj->setValue($val);
                 // Keep a reference for isChange checks

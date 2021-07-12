@@ -77,6 +77,7 @@
     MyNumberValue: 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4='
     MyNumberBlindIndex: '9cb2dcc9'
     MyNumberLastFourBlindIndex: '95a3'
+  ## These models are encrypted using keypairs
   admin_record:
     Name: admin
     MyText: 'brng:EdK9tjkGd6-Hso94ebK-3Gduy-IjNYasQcfteP-fW99ug1u5Qsv0xLy7B4LZx-RqaneQulpnM7gPedVX5IgiMXAI'

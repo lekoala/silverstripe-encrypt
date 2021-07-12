@@ -9,7 +9,6 @@ use ParagonIE\CipherSweet\BlindIndex;
 use SilverStripe\ORM\Queries\SQLSelect;
 use ParagonIE\CipherSweet\EncryptedField;
 use SilverStripe\ORM\FieldType\DBComposite;
-use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
 
 /**
  * Value will be set on parent record through built in getField
@@ -17,6 +16,8 @@ use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
  */
 class EncryptedDBField extends DBComposite
 {
+    use HasBaseEncryption;
+
     const LARGE_INDEX_SIZE = 32;
     const SMALL_INDEX_SIZE = 16;
     const VALUE_SUFFIX = "Value";
@@ -41,19 +42,6 @@ class EncryptedDBField extends DBComposite
         "Value" => "Varchar(191)",
         "BlindIndex" => 'Varchar(32)',
     );
-
-    /**
-     * @var Exception
-     */
-    protected $encryptionException;
-
-    /**
-     * @return Exception
-     */
-    public function getEncryptionException()
-    {
-        return $this->encryptionException;
-    }
 
     /**
      * Output size is the number of bits (not bytes) of a blind index.
@@ -276,17 +264,6 @@ class EncryptedDBField extends DBComposite
         return false;
     }
 
-    /**
-     * @return string
-     */
-    public function getDecryptedValue()
-    {
-        if (EncryptHelper::isEncrypted($this->value)) {
-            return $this->getEncryptedField()->decryptValue($this->value);
-        }
-        return $this->value;
-    }
-
     public function setValue($value, $record = null, $markChanged = true)
     {
         // Return early if we keep encrypted value in memory
@@ -326,34 +303,7 @@ class EncryptedDBField extends DBComposite
         } elseif ($record && isset($record[$this->name . self::VALUE_SUFFIX])) {
             // In that case, the value come from the database and might be encrypted
             $encryptedValue = $record[$this->name . self::VALUE_SUFFIX];
-
-            // It should always be encrypted from the db, but just in case...
-            if ($encryptedValue && EncryptHelper::isEncrypted($encryptedValue)) {
-                try {
-                    $this->value = $this->getEncryptedField()->decryptValue($encryptedValue);
-                } catch (InvalidCiphertextException $ex) {
-                    $this->encryptionException = $ex;
-                    // rotate backend ?
-                    if (EncryptHelper::getAutomaticRotation()) {
-                        $encryption = EncryptHelper::getEncryption($encryptedValue);
-                        $engine = EncryptHelper::getEngineForEncryption($encryption);
-                        $oldEncryptedField = $this->getEncryptedField($engine);
-                        $this->value = $oldEncryptedField->decryptValue($encryptedValue);
-                    } else {
-                        $this->value = $encryptedValue;
-                    }
-                } catch (Exception $ex) {
-                    $this->encryptionException = $ex;
-                    // We cannot decrypt
-                    $this->value = $this->nullValue();
-                }
-            } else {
-                if ($encryptedValue) {
-                    $this->value = $encryptedValue;
-                } else {
-                    $this->value = $this->nullValue();
-                }
-            }
+            $this->value = $this->decryptValue($encryptedValue);
         } elseif (is_array($value)) {
             if (array_key_exists(self::VALUE_SUFFIX, $value)) {
                 $this->value = $value;
