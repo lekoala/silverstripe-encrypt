@@ -106,6 +106,9 @@ trait HasEncryptedFields
         $new = EncryptHelper::getCipherSweet();
 
         $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class, true));
+        if (EncryptHelper::getAadSource()) {
+            $encryptedFields[] = EncryptHelper::getAadSource();
+        }
         $query = new SQLSelect($encryptedFields, $tableName, [$columnIdentifier => $this->ID]);
         $ciphertext = $query->execute()->first();
         $ciphertext = array_filter($ciphertext);
@@ -144,6 +147,7 @@ trait HasEncryptedFields
         $tableName = DataObject::getSchema()->tableName($class);
         $encryptedRow = new EncryptedRow($engine, $tableName);
         $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class));
+        $aadSource = EncryptHelper::getAadSource();
         foreach ($encryptedFields as $field) {
             if (!empty($onlyFields) && !array_key_exists($field, $onlyFields)) {
                 continue;
@@ -152,12 +156,12 @@ trait HasEncryptedFields
             $encryptedField = $this->dbObject($field)->getEncryptedField($engine);
             $blindIndexes = $encryptedField->getBlindIndexObjects();
             if (count($blindIndexes)) {
-                $encryptedRow->addField($field . "Value");
+                $encryptedRow->addTextField($field . "Value", $aadSource);
                 foreach ($encryptedField->getBlindIndexObjects() as $blindIndex) {
                     $encryptedRow->addBlindIndex($field . "Value", $blindIndex);
                 }
             } else {
-                $encryptedRow->addField($field);
+                $encryptedRow->addTextField($field, $aadSource);
             }
         }
         return $encryptedRow;

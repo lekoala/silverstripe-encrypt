@@ -14,6 +14,11 @@ trait HasBaseEncryption
     protected $encryptionException;
 
     /**
+     * @var string
+     */
+    protected $encryptionAad = '';
+
+    /**
      * @return Exception
      */
     public function getEncryptionException()
@@ -35,6 +40,8 @@ trait HasBaseEncryption
     }
 
     /**
+     * Decrypt current value using underlying EncryptedField instance
+     *
      * @return string
      */
     public function getDecryptedValue()
@@ -46,14 +53,32 @@ trait HasBaseEncryption
     }
 
     /**
+     * @param DataObject $record
+     * @return void
+     */
+    protected function setEncryptionAad($record)
+    {
+        $field = EncryptHelper::getAadSource();
+        if (!$field) {
+            return;
+        }
+        if ($record && isset($record->$field)) {
+            $this->encryptionAad = (string)$record->$field;
+        }
+    }
+
+    /**
+     * Decrypt a value using underlying EncryptedField instance
+     *
      * @param string $value
      * @return string
      */
     protected function decryptValue($value)
     {
         $decrypted = null;
+        $aad = $this->encryptionAad;
         try {
-            $decrypted = $this->getEncryptedField()->decryptValue($value);
+            $decrypted = $this->getEncryptedField()->decryptValue($value, $aad);
         } catch (InvalidCiphertextException $ex) {
             $this->encryptionException = $ex;
             // rotate backend ?
@@ -61,7 +86,7 @@ trait HasBaseEncryption
                 $encryption = EncryptHelper::getEncryption($value);
                 $engine = EncryptHelper::getEngineForEncryption($encryption);
                 $oldEncryptedField = $this->getEncryptedField($engine);
-                $decrypted = $oldEncryptedField->decryptValue($value);
+                $decrypted = $oldEncryptedField->decryptValue($value, $aad);
             } else {
                 $decrypted = $value;
             }

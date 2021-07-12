@@ -53,6 +53,7 @@ class EncryptTest extends SapphireTest
         // We need to disable automatic decryption to avoid fixtures being re encrypted with the wrong keys
         EncryptHelper::setAutomaticDecryption(false);
         Environment::setEnv('ENCRYPTION_KEY', '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e5');
+        Environment::setEnv('OLD_ENCRYPTION_KEY', '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e4');
         parent::setUp();
         EncryptHelper::setAutomaticDecryption(true);
 
@@ -61,20 +62,84 @@ class EncryptTest extends SapphireTest
             throw new Exception("You must load sodium extension for this");
         }
 
-        // The rows are already decrypted and changed due to the fixtures going through the ORM layer
+        // Generate our test data from scratch
+        // Use some old engine first
+        // $this->generateData();
+
+        // $this->showRowsFromDb();
+        // $this->writeDataFromYml();
+    }
+
+    protected function generateData()
+    {
+        EncryptHelper::clearCipherSweet();
+        EncryptHelper::setForcedEncryption("nacl");
+        $someText = 'some text';
+        $data = [
+            'MyText' => $someText . ' text',
+            'MyHTMLText' => '<p>' . $someText . ' html</p>',
+            'MyVarchar' => 'encrypted varchar value',
+            'MyIndexedVarchar' => "some_searchable_value",
+            'MyNumber' => "0123456789",
+        ];
+        $record = Test_EncryptedModel::get()->filter('Name', 'demo')->first();
+        foreach ($data as $k => $v) {
+            $record->$k = $v;
+        }
+        $record->write();
+        EncryptHelper::clearCipherSweet();
+        $record = Test_EncryptedModel::get()->filter('Name', 'demo3')->first();
+        foreach ($data as $k => $v) {
+            $record->$k = $v;
+        }
+        $record->write();
+        // use regular engine
+        EncryptHelper::clearCipherSweet();
+        EncryptHelper::setForcedEncryption(null);
+        $record = Test_EncryptedModel::get()->filter('Name', 'demo2')->first();
+        foreach ($data as $k => $v) {
+            $record->$k = $v;
+        }
+        $record->write();
+    }
+
+    protected function showRowsFromDb()
+    {
         $result = DB::query("SELECT * FROM EncryptedModel");
-        // echo '<pre>';
+        echo '<pre>' . "\n";
         // print_r(iterator_to_array($result));
-        // die();
+        foreach ($result as $row) {
+            $this->showAsYml($row);
+        }
+        die();
+    }
 
-        // $ymlParser = new Parser;
-        // $ymlData = $ymlParser->parseFile(__DIR__ . '/EncryptTest.yml');
+    protected function writeDataFromYml()
+    {
+        $ymlParser = new Parser;
+        $ymlData = $ymlParser->parseFile(__DIR__ . '/EncryptTest.yml');
 
-        // foreach ($ymlData["LeKoala\\Encrypt\\Test\\Test_EncryptedModel"] as $name => $data) {
-        //     unset($data['Member']);
-        //     $update = new SQLUpdate("EncryptedModel", $data, ["Name" => $data['Name']]);
-        //     $update->execute();
-        // }
+        foreach ($ymlData["LeKoala\\Encrypt\\Test\\Test_EncryptedModel"] as $name => $data) {
+            unset($data['Member']);
+            $update = new SQLUpdate("EncryptedModel", $data, ["Name" => $data['Name']]);
+            $update->execute();
+        }
+    }
+
+    protected function showAsYml($row)
+    {
+        $fields = [
+            'Name', 'MyText', 'MyHTMLText', 'MyVarchar',
+            'MyNumberValue', 'MyNumberBlindIndex', 'MyNumberLastFourBlindIndex',
+            'MyIndexedVarcharValue', 'MyIndexedVarcharBlindIndex'
+        ];
+        echo "  " . $row['Name'] . ":\n";
+        foreach ($row as $k => $v) {
+            if (!in_array($k, $fields)) {
+                continue;
+            }
+            echo "    $k: '$v'\n";
+        }
     }
 
     public function tearDown()
@@ -644,6 +709,23 @@ class EncryptTest extends SapphireTest
         $this->assertEquals($message, $decrypted);
     }
 
+    protected function getMultiTenantProvider()
+    {
+        $members = $this->getAllMembers();
+        $tenants = [];
+        foreach ($members as $member) {
+            // You can also use the secret key from a keypair
+            // $key = Test_EncryptionKey::getForMember($member->ID);
+            $keyPair = Test_EncryptionKey::getKeyPair($member->ID);
+            if ($keyPair) {
+                $tenants[$member->ID] = new StringProvider($keyPair['secret']);
+                // $tenants[$member->ID] = new StringProvider($key);
+            }
+        }
+        $provider = new MemberKeyProvider($tenants);
+        return $provider;
+    }
+
     /**
      * @group multi-tenant
      * @group only
@@ -656,24 +738,14 @@ class EncryptTest extends SapphireTest
         $admin = $this->getAdminMember();
         $user1 = $this->getUser1Member();
         $user2 = $this->getUser2Member();
-        $members = $this->getAllMembers();
-        $tenants = [];
-        foreach ($members as $member) {
-            // You can also use the secret key from a keypair
-            // $key = Test_EncryptionKey::getForMember($member->ID);
-            $keyPair = Test_EncryptionKey::getKeyPair($member->ID);
-            if ($keyPair) {
-                $tenants[$member->ID] = new StringProvider($keyPair['secret']);
-                // $tenants[$member->ID] = new StringProvider($key);
-            }
-        }
+
         $adminModel = $this->getAdminTestModel();
         $user1Model = $this->getUser1TestModel();
         $user2Model = $this->getUser2TestModel();
 
-        Security::setCurrentUser($admin);
-        $provider = new MemberKeyProvider($tenants);
+        $provider = $this->getMultiTenantProvider();
 
+        Security::setCurrentUser($admin);
         EncryptHelper::clearCipherSweet();
         $cs = EncryptHelper::getCipherSweet($provider);
 
@@ -681,6 +753,7 @@ class EncryptTest extends SapphireTest
 
         $string = "my content";
         $record = new Test_EncryptedModel();
+        // $record = Test_EncryptedModel::get()->filter('ID', $user2Model->ID)->first();
         $record->MyText = $string;
         // We need to set active tenant ourselves because orm records fields one by one
         // it doesn't go through injectMetadata
@@ -693,6 +766,7 @@ class EncryptTest extends SapphireTest
 
         $freshRecord = Test_EncryptedModel::get()->filter('ID', $record->ID)->first();
 
+        $this->assertEquals($admin->ID, Security::getCurrentUser()->ID, "Make sure the right member is logged in");
         // He can decode
         $this->assertEquals($string, $freshRecord->MyText);
 

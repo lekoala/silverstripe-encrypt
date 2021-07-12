@@ -28,12 +28,15 @@ trait HasEncryption
         if (EncryptHelper::isEncrypted($value)) {
             return $value;
         }
-        $encryptedValue = $this->getEncryptedField()->encryptValue($value);
+        $aad = $this->encryptionAad;
+        $encryptedValue = $this->getEncryptedField()->encryptValue($value, $aad);
         return $encryptedValue;
     }
 
     public function setValue($value, $record = null, $markChanged = true)
     {
+        $this->setEncryptionAad($record);
+
         // Return early if we keep encrypted value in memory
         if (!EncryptHelper::getAutomaticDecryption()) {
             $this->value = $value;

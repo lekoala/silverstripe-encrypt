@@ -72,60 +72,6 @@ class EncryptedNumberField extends EncryptedDBField
         return $encryptedField;
     }
 
-    /**
-     * This is not called anymore, we rely on saveInto for now
-     * @link https://github.com/silverstripe/silverstripe-framework/issues/8800
-     * @param array $manipulation
-     * @return void
-     */
-    public function writeToManipulation(&$manipulation)
-    {
-        $encryptedField = $this->getEncryptedField();
-
-        if ($this->value) {
-            $dataForStorage = $encryptedField->prepareForStorage($this->value);
-            $encryptedValue = $this->prepValueForDB($dataForStorage[0]);
-            $blindIndexes = $dataForStorage[1];
-        } else {
-            $encryptedValue = null;
-            $blindIndexes = [];
-        }
-
-        $manipulation['fields'][$this->name . 'Value'] = $encryptedValue;
-        $manipulation['fields'][$this->name . 'BlindIndex'] = $blindIndexes[$this->name . 'BlindIndex'] ?? null;
-        $manipulation['fields'][$this->name . 'LastFourBlindIndex'] = $blindIndexes[$this->name . 'LastFourBlindIndex'] ?? null;
-    }
-
-    public function saveInto($dataObject)
-    {
-        $encryptedField = $this->getEncryptedField();
-
-        if ($this->value) {
-            $dataForStorage = $encryptedField->prepareForStorage($this->value);
-            $encryptedValue = $this->prepValueForDB($dataForStorage[0]);
-            $blindIndexes = $dataForStorage[1];
-        } else {
-            $encryptedValue = null;
-            $blindIndexes = [];
-        }
-
-        // Encrypt value
-        $key = $this->getName() . 'Value';
-        $dataObject->setField($key, $encryptedValue);
-
-        // Build blind index
-        $key = $this->getName() . 'BlindIndex';
-        if (isset($blindIndexes[$key])) {
-            $dataObject->setField($key, $blindIndexes[$key]);
-        }
-
-        // Build last four blind index
-        $key = $this->getName() . 'LastFourBlindIndex';
-        if (isset($blindIndexes[$key])) {
-            $dataObject->setField($key, $blindIndexes[$key]);
-        }
-    }
-
     public function addToQuery(&$query)
     {
         parent::addToQuery($query);

@@ -56,6 +56,11 @@ class EncryptHelper
     private static $automatic_decryption = true;
 
     /**
+     * @var string
+     */
+    private static $aad_source = "ID";
+
+    /**
      * @var CipherSweet
      */
     protected static $ciphersweet;
@@ -79,7 +84,7 @@ class EncryptHelper
      */
     public static function setForcedEncryption($forcedEncryption)
     {
-        if (!in_array($forcedEncryption, ["brng", "nacl", "fips"])) {
+        if ($forcedEncryption && !in_array($forcedEncryption, ["brng", "nacl", "fips"])) {
             throw new InvalidArgumentException("$forcedEncryption is not supported");
         }
         self::config()->forced_encryption = $forcedEncryption;
@@ -118,6 +123,23 @@ class EncryptHelper
     public static function setAutomaticDecryption($automaticDecryption)
     {
         self::config()->automatic_decryption = $automaticDecryption;
+    }
+
+    /**
+     * @return string
+     */
+    public static function getAadSource()
+    {
+        return self::config()->aad_source;
+    }
+
+    /**
+     * @param bool $aadSource
+     * @return void
+     */
+    public static function setAadSource($aadSource)
+    {
+        self::config()->aad_source = $aadSource;
     }
 
     /**

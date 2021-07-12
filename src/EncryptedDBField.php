@@ -146,9 +146,9 @@ class EncryptedDBField extends DBComposite
     public function writeToManipulation(&$manipulation)
     {
         $encryptedField = $this->getEncryptedField();
-
+        $aad = $this->encryptionAad;
         if ($this->value) {
-            $dataForStorage = $encryptedField->prepareForStorage($this->value);
+            $dataForStorage = $encryptedField->prepareForStorage($this->value, $aad);
             $encryptedValue = $this->prepValueForDB($dataForStorage[0]);
             $blindIndexes = $dataForStorage[1];
         } else {
@@ -157,7 +157,9 @@ class EncryptedDBField extends DBComposite
         }
 
         $manipulation['fields'][$this->name . self::VALUE_SUFFIX] = $encryptedValue;
-        $manipulation['fields'][$this->name . self::INDEX_SUFFIX] = $blindIndexes[$this->name . self::INDEX_SUFFIX] ?? null;
+        foreach ($blindIndexes as $blindIndexName => $blindIndexValue) {
+            $manipulation['fields'][$blindIndexName] = $blindIndexValue;
+        }
     }
 
     /**
@@ -266,6 +268,8 @@ class EncryptedDBField extends DBComposite
 
     public function setValue($value, $record = null, $markChanged = true)
     {
+        $this->setEncryptionAad($record);
+
         // Return early if we keep encrypted value in memory
         if (!EncryptHelper::getAutomaticDecryption()) {
             parent::setValue($value, $record, $markChanged);
@@ -362,9 +366,9 @@ class EncryptedDBField extends DBComposite
     public function saveInto($dataObject)
     {
         $encryptedField = $this->getEncryptedField();
-
+        $aad = $this->encryptionAad;
         if ($this->value) {
-            $dataForStorage = $encryptedField->prepareForStorage($this->value);
+            $dataForStorage = $encryptedField->prepareForStorage($this->value, $aad);
             $encryptedValue = $this->prepValueForDB($dataForStorage[0]);
             $blindIndexes = $dataForStorage[1];
         } else {
@@ -379,10 +383,9 @@ class EncryptedDBField extends DBComposite
         $key = $this->getName() . 'Value';
         $dataObject->setField($key, $encryptedValue);
 
-        // Build blind index
-        $key = $this->getName() . self::INDEX_SUFFIX;
-        if (isset($blindIndexes[$key])) {
-            $dataObject->setField($key, $blindIndexes[$key]);
+        // Build blind indexes
+        foreach ($blindIndexes as $blindIndexName => $blindIndexValue) {
+            $dataObject->setField($blindIndexName, $blindIndexValue);
         }
     }
 

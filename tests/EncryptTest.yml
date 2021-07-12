@@ -44,49 +44,49 @@
 'LeKoala\Encrypt\Test\Test_EncryptedModel':
   # this record use old encryption => needs to be rotated
   demo:
-    Name: demo
-    MyText: 'nacl:_nKhFvZkFwWJssMLf2s6wsucM-6zMmT862XGiYG9KQaL5fgl3CSA_O0gcs3OGPPB4AJoNInC'
-    MyHTMLText: 'nacl:jetKPUBgETbLtlfAx1VkZiWJFG65hCuWVSmrwVDX4TTysmJkj2vnhI329oa9eCTlX1kKSjCp7AyFXDKT7Q=='
-    MyVarchar: 'nacl:_-5ZsG9txfqMNkHY7xl0JlmCLzrx9BemtC0CwGjYZOt9pCwle9PjHmIZcqJcoEdxpJXplLtKPF-xPGax_pIy'
-    MyIndexedVarcharValue: 'nacl:V1G-EPYeHP5-OQu2XAcPp4ym0HuvLpseBqytg3VVddAWoyC3Lm5aAE3G9xx_2uW6QwO0dcnrLFBPNFZ6eQ=='
-    MyIndexedVarcharBlindIndex: 'f6f6771c'
-    MyNumberValue: 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4='
+    Name: 'demo'
+    MyText: 'nacl:J0MSRR_3SiS-EJ5MTknr4EsdYuJfPelqlOnfc86ZLRB2dAF36E73AfFI1JnQljpLKbm4z0RJ'
+    MyHTMLText: 'nacl:suuecD8nfDe9znFkX9oFJgBOMNqV-WZ6E4xmmqt0hOq1HLxaZLSuNfQgKKKLl0p0mAx06JdrAW2uMBFjdA=='
+    MyVarchar: 'nacl:-v5urTD97S09NPHetURc_mby2NLUq1YlJk8xfMVgzi9j6OO9vWpB9miNAegSLs_ynJByp_xFOT8jkwWovfft'
+    MyNumberValue: 'nacl:moucwmvVb9gABA1YfLyHQpLf_CrjJ_oH3nevNMCNI1klxu8A7B9PGTJgWfgHTctpyBQ='
     MyNumberBlindIndex: '9cb2dcc9'
     MyNumberLastFourBlindIndex: '95a3'
+    MyIndexedVarcharValue: 'nacl:UjIFz41sx7MOcUm47gX1VArpj9PbAMjytcKHA-mW_PVlc1RsOO5Sqq3d9rzpsNLHPPrdwoA169SzPIeLkw=='
+    MyIndexedVarcharBlindIndex: 'f6f6771c'
     RegularFileID: =>SilverStripe\Assets\File.regular
     EncryptedFileID: =>SilverStripe\Assets\File.encrypted
   # this record use up to date encryption
   demo2:
-    Name: demo2
-    MyText: 'brng:DwBtLvR876mbL5qfX1IIUDZ7NbrDtyXAgXjB8dDKxfYAYKlajKr9J9NGMY47tkNcrLv4PBbHQ4bAOTZHGsTvmQuGT7he0w=='
-    MyHTMLText: 'brng:Nf7VDpEPIQABaZvch8wDY3jCuctBcy0x6sIJO_BkWJL2H86b6O0WvXfDldFihhXxnhzJH3cy-Ygx6sMbgBttDPcT6j8SXFqxeG2pxHI='
-    MyVarchar: 'brng:hoE5xdUMwdJRjXi4jsGs8d_FzBzibUqmiRdoC-oo7_JsFPtz55FzAIb_Qcl-SreatW0uZViRGUvhLGbszKuIUejswmXIqYtSglkc9nHk5g=='
-    MyNumberValue: 'brng:4AB4YlC-AZHrb6d-t6aiDjZDVdg0BHRN2jAb5CoxiFN89XssvReGkbQMp9jGbXtstk1W94745WWJeiI4n05HsDPu'
+    Name: 'demo2'
+    MyText: 'brng:3AiyfvStjw7Bu7EwTwZRLSWIvHOHUcC7ND4PjE5URxwTLUjTU7X_BlBtuTs5x08aOAzHQ2TYY3WnwaCq7yrWOzIw7rRqMg=='
+    MyHTMLText: 'brng:AaEL3dYBTsGarqvDGPkK7g0cCYcuXNNDeoLf9ckFNv7PEdL8fzm7HGYxcxU2oNR6yhPa5rg4rW3vuAo8AVqts-ouaVFhsgSTK6BsXno='
+    MyVarchar: 'brng:vqQonvOs9xJuDZoyfDEQXl_VQL0WT7TkJdSgfFCqeM5LNspQIhV6byiNT-VBOT50ngRANb2vH70RJy0rBAd4qqsETvu1kN75dhcPVEIBcg=='
+    MyNumberValue: 'brng:NQB_RnW6UKARBJ_J-3jcD4bHVxNzafXaQai0cdLYiiTQ9SCY18xdSCWbVn5CJVX9sE2AAPF50IHC_P6Eu9nv1BsF'
     MyNumberBlindIndex: '9cb2dcc9'
     MyNumberLastFourBlindIndex: '95a3'
-    MyIndexedVarcharValue: 'brng:_RZQDZXqeISYm3WtfTSAS2p0hZz-QDHAWmFSKvcaWLQ5ODRyUKKcPvsGOiIvfBPYmOJH35zh1Hrm2K2LY4ElLNVfAQN_QgcXpxWWNWI='
+    MyIndexedVarcharValue: 'brng:m9vgaqMsQEAYLjCCbpC3joNjw050TS7t5rZOB03J4mvS_9MJYj68aBTDDOAaGxHOVgeM8ujgaOqPSBRlWOmoW2cdMsfcRiHHKG4F48w='
     MyIndexedVarcharBlindIndex: 'f6f6771c'
   # the same as demo 1, for rotate test purposes
   demo3:
-    Name: demo3
-    MyText: 'nacl:_nKhFvZkFwWJssMLf2s6wsucM-6zMmT862XGiYG9KQaL5fgl3CSA_O0gcs3OGPPB4AJoNInC'
-    MyHTMLText: 'nacl:jetKPUBgETbLtlfAx1VkZiWJFG65hCuWVSmrwVDX4TTysmJkj2vnhI329oa9eCTlX1kKSjCp7AyFXDKT7Q=='
-    MyVarchar: 'nacl:_-5ZsG9txfqMNkHY7xl0JlmCLzrx9BemtC0CwGjYZOt9pCwle9PjHmIZcqJcoEdxpJXplLtKPF-xPGax_pIy'
-    MyIndexedVarcharValue: 'nacl:V1G-EPYeHP5-OQu2XAcPp4ym0HuvLpseBqytg3VVddAWoyC3Lm5aAE3G9xx_2uW6QwO0dcnrLFBPNFZ6eQ=='
-    MyIndexedVarcharBlindIndex: 'f6f6771c'
-    MyNumberValue: 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4='
+    Name: 'demo3'
+    MyText: 'nacl:YppimF7R03mrGfgeqKLo2g3yWV6eKChBQCADGkNT7KQo5kASt4WUwdwuDDQalqgW50Gwn7Cr'
+    MyHTMLText: 'nacl:e6f9awmPtHaS24Mlg1J3GOUK1-z25a2JE2SJfMRRrcaAysxAHn74eCcynWetqZplu25wCwzc539Uf1MIoQ=='
+    MyVarchar: 'nacl:uYhhGWifEPb93W1v0vmmneyrYs0vfd9zFtLDUzkPPrXUamrB8FB4wuXYckU5rw2UsqXuJfAQdBhEyy4tZE96'
+    MyNumberValue: 'nacl:vsKrJn6v-qPHSebAINDGOt0tuFmU3fKNE7fySVuV-px3MbIIocY8c7urvDbsvxY0NkM='
     MyNumberBlindIndex: '9cb2dcc9'
     MyNumberLastFourBlindIndex: '95a3'
+    MyIndexedVarcharValue: 'nacl:vreN8Py8_cAAipQkIyabyzJpJtzJn4MwGjylDebP1Rw0ZuwWZIXSgUiSZ1H_aiX8h2LNmY9837drj1rVlQ=='
+    MyIndexedVarcharBlindIndex: 'f6f6771c'
   ## These models are encrypted using keypairs
   admin_record:
     Name: admin
-    MyText: 'brng:EdK9tjkGd6-Hso94ebK-3Gduy-IjNYasQcfteP-fW99ug1u5Qsv0xLy7B4LZx-RqaneQulpnM7gPedVX5IgiMXAI'
+    MyText: 'brng:qanKzI2j6CYk9phM-juy_4oSzSphidW0HYDPzCiC9mpCYbXwB11ByvxOtL-w4xtiMGEGpCpciF4TrfuHIAr3bCm6'
     Member: =>SilverStripe\Security\Member.admin
   user1_record:
     Name: user1
-    MyText: 'brng:5ReAJL6QrfTBfyP43D2iT-kTLqjykL09slvl9A_eMqLfzcOWWp5Pbwu8Pt4nS5FK23DYtM8Oq-EeSO0EMFhSOgAW'
+    MyText: 'brng:QrCUDVJZ3ZOHpSS8cwbhFmQR44rk94Aw9lLOglQAz-JyXs3bkmPBhBae3xkEBG1MP-iz9YVqTmq9iVrHQXjU7xu5'
     Member: =>SilverStripe\Security\Member.user1
   user2_record:
     Name: user2
-    MyText: 'brng:KlKksN46ttnwK0Esy2KGZFTTo_GKEx1fCSVhUGcmRF12xXqVy3k9AVnQfDTWiA7ImgeERoWxEcGGhinyclL7Cotv'
+    MyText: 'brng:ggktHO1WkybAYhdleEaVkaFldxt9wrE3IvDFMxGGudysuOmSvdU2KPdQM1jbvV344KdJ05eM6WtvEXMtqaRc8mDm'
     Member: =>SilverStripe\Security\Member.user2

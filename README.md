@@ -234,6 +234,16 @@ your indexes properly configured.
 By default, blind indexes will have a size of 32 chars which allow a large numbers
 of records in your table with a really low 
 
+# Using aad
+
+By default, this module will use AAD.
+
+This binds the ciphertext to a specific row, thereby preventing an attacker capable of replacing ciphertexts 
+and using legitimate app access to decrypt ciphertexts they wouldn't otherwise have access to.
+
+This setting is controlled by `aad_source` parameter that takes by default the "ID" value.
+You can disable aad by setting this to an empty string.
+
 # Todo
 
 - Figure out a way to encrypt the Email field for members
