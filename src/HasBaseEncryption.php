@@ -3,6 +3,7 @@
 namespace LeKoala\Encrypt;
 
 use Exception;
+use SilverStripe\ORM\DataObject;
 use ParagonIE\CipherSweet\EncryptedField;
 use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
 
