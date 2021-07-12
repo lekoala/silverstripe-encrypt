@@ -276,8 +276,25 @@ class EncryptedDBField extends DBComposite
         return false;
     }
 
+    /**
+     * @return string
+     */
+    public function getDecryptedValue()
+    {
+        if (EncryptHelper::isEncrypted($this->value)) {
+            return $this->getEncryptedField()->decryptValue($this->value);
+        }
+        return $this->value;
+    }
+
     public function setValue($value, $record = null, $markChanged = true)
     {
+        // Return early if we keep encrypted value in memory
+        if (!EncryptHelper::getAutomaticDecryption()) {
+            parent::setValue($value, $record, $markChanged);
+            return $this;
+        }
+
         if ($markChanged) {
             $this->isChanged = true;
         }

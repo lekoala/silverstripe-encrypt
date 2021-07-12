@@ -9,12 +9,18 @@
   admin:
     Member: =>SilverStripe\Security\Member.admin
     EncryptionKey: '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e5'
+    SecretKey: 'd50c53f6884b3de4c6448a1cb5384b80da1a502db4d18d67553a34c73538f36a'
+    PublicKey: '0b9318262fba608fc68b948eeb6a9aec134ffd490bab805e13b7e42400f2110b'
   user1:
     Member: =>SilverStripe\Security\Member.user1
     EncryptionKey: '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e6'
+    SecretKey: '0572d3abec327700dc2fc310240e8d611fb9121610d977fa81947676d5f74d8c'
+    PublicKey: 'e17995697686e75a75a17707fc0118896a4cef1e40db32d7bf6e912a3aa9ce15'
   user2:
     Member: =>SilverStripe\Security\Member.user2
     EncryptionKey: '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e7'
+    SecretKey: '6086c3fc007a9e6200739d9a5539f671d3ba11bfc0af441a9a5c3191208d55a4'
+    PublicKey: 'a07c74f1bbce78cbb64df175514f6bf136cf3afca9206aea915780a6bb4b4776'
 'SilverStripe\Assets\Folder':
   uploads:
     Title: Uploads
@@ -39,14 +45,11 @@
   # this record use old encryption => needs to be rotated
   demo:
     Name: demo
-    MyVarcharDecrypted: 'encrypted varchar value'
     MyText: 'nacl:_nKhFvZkFwWJssMLf2s6wsucM-6zMmT862XGiYG9KQaL5fgl3CSA_O0gcs3OGPPB4AJoNInC'
     MyHTMLText: 'nacl:jetKPUBgETbLtlfAx1VkZiWJFG65hCuWVSmrwVDX4TTysmJkj2vnhI329oa9eCTlX1kKSjCp7AyFXDKT7Q=='
     MyVarchar: 'nacl:_-5ZsG9txfqMNkHY7xl0JlmCLzrx9BemtC0CwGjYZOt9pCwle9PjHmIZcqJcoEdxpJXplLtKPF-xPGax_pIy'
-    MyIndexedVarcharValueDecrypted: 'some_searchable_value'
     MyIndexedVarcharValue: 'nacl:V1G-EPYeHP5-OQu2XAcPp4ym0HuvLpseBqytg3VVddAWoyC3Lm5aAE3G9xx_2uW6QwO0dcnrLFBPNFZ6eQ=='
     MyIndexedVarcharBlindIndex: 'f6f6771c'
-    MyNumberValueDecrypted: '0123456789'
     MyNumberValue: 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4='
     MyNumberBlindIndex: '9cb2dcc9'
     MyNumberLastFourBlindIndex: '95a3'
@@ -66,26 +69,23 @@
   # the same as demo 1, for rotate test purposes
   demo3:
     Name: demo3
-    MyVarcharDecrypted: 'encrypted varchar value'
     MyText: 'nacl:_nKhFvZkFwWJssMLf2s6wsucM-6zMmT862XGiYG9KQaL5fgl3CSA_O0gcs3OGPPB4AJoNInC'
     MyHTMLText: 'nacl:jetKPUBgETbLtlfAx1VkZiWJFG65hCuWVSmrwVDX4TTysmJkj2vnhI329oa9eCTlX1kKSjCp7AyFXDKT7Q=='
     MyVarchar: 'nacl:_-5ZsG9txfqMNkHY7xl0JlmCLzrx9BemtC0CwGjYZOt9pCwle9PjHmIZcqJcoEdxpJXplLtKPF-xPGax_pIy'
-    MyIndexedVarcharValueDecrypted: 'some_searchable_value'
     MyIndexedVarcharValue: 'nacl:V1G-EPYeHP5-OQu2XAcPp4ym0HuvLpseBqytg3VVddAWoyC3Lm5aAE3G9xx_2uW6QwO0dcnrLFBPNFZ6eQ=='
     MyIndexedVarcharBlindIndex: 'f6f6771c'
-    MyNumberValueDecrypted: '0123456789'
     MyNumberValue: 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4='
     MyNumberBlindIndex: '9cb2dcc9'
     MyNumberLastFourBlindIndex: '95a3'
   admin_record:
     Name: admin
-    MyText: 'brng:5xipJsqqH01oio3plxBL9xrX-cMz4hgGjwZa7txCqlMZ2oB4EItiQTHOLYoUZDAhoZxyACFgXS1GFYSoV4fFmd-Y'
+    MyText: 'brng:EdK9tjkGd6-Hso94ebK-3Gduy-IjNYasQcfteP-fW99ug1u5Qsv0xLy7B4LZx-RqaneQulpnM7gPedVX5IgiMXAI'
     Member: =>SilverStripe\Security\Member.admin
   user1_record:
     Name: user1
-    MyText: 'brng:IC7cJF_ShjUMTNKGUGd0ttOLhFsXPwIwAwcApYAcm31X7O5DVhN2ffxVJ9mdIrfQ49rWCq7CsRUwsMzgB_8Ef2tk'
+    MyText: 'brng:5ReAJL6QrfTBfyP43D2iT-kTLqjykL09slvl9A_eMqLfzcOWWp5Pbwu8Pt4nS5FK23DYtM8Oq-EeSO0EMFhSOgAW'
     Member: =>SilverStripe\Security\Member.user1
   user2_record:
     Name: user2
-    MyText: 'brng:bqxppFZfsKZOK5iYRdxzTQz1mJwvAZSaBYhEfmM9-hCctJ9lAtLJPCQNAXnJNe3EVdwHfRLYvdUiLeWnHVQ7DbW8'
+    MyText: 'brng:KlKksN46ttnwK0Esy2KGZFTTo_GKEx1fCSVhUGcmRF12xXqVy3k9AVnQfDTWiA7ImgeERoWxEcGGhinyclL7Cotv'
     Member: =>SilverStripe\Security\Member.user2

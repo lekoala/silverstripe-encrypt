@@ -60,8 +60,25 @@ trait HasEncryption
         return $encryptedValue;
     }
 
+    /**
+     * @return string
+     */
+    public function getDecryptedValue()
+    {
+        if (EncryptHelper::isEncrypted($this->value)) {
+            return $this->getEncryptedField()->decryptValue($this->value);
+        }
+        return $this->value;
+    }
+
     public function setValue($value, $record = null, $markChanged = true)
     {
+        // Return early if we keep encrypted value in memory
+        if (!EncryptHelper::getAutomaticDecryption()) {
+            $this->value = $value;
+            return $this;
+        }
+
         // $markChanged is not used
         // The value might come encrypted from the database
         if ($value && EncryptHelper::isEncrypted($value)) {

@@ -6,11 +6,14 @@ use Exception;
 use SilverStripe\ORM\DB;
 use SilverStripe\Assets\File;
 use SilverStripe\ORM\DataList;
+use ParagonIE\ConstantTime\Hex;
+use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use LeKoala\Encrypt\EncryptHelper;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
+use Symfony\Component\Yaml\Parser;
 use SilverStripe\Security\Security;
 use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\MemberKeyProvider;
@@ -18,9 +21,9 @@ use ParagonIE\CipherSweet\CipherSweet;
 use LeKoala\Encrypt\HasEncryptedFields;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
+use SilverStripe\i18n\Messages\YamlReader;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
 use ParagonIE\CipherSweet\Contract\MultiTenantSafeBackendInterface;
-use SilverStripe\ORM\ArrayList;
 
 /**
  * Test for Encrypt
@@ -48,11 +51,11 @@ class EncryptTest extends SapphireTest
 
     public function setUp()
     {
-        // EncryptHelper::setForcedEncryption("nacl");
-        EncryptHelper::setAutomaticRotation(false);
+        // We need to disable automatic decryption to avoid fixtures being re encrypted with the wrong keys
+        EncryptHelper::setAutomaticDecryption(false);
         Environment::setEnv('ENCRYPTION_KEY', '502370dfc69fd6179e1911707e8a5fb798c915900655dea16370d64404be04e5');
         parent::setUp();
-        EncryptHelper::setAutomaticRotation(true);
+        EncryptHelper::setAutomaticDecryption(true);
 
         // test extension is available
         if (!extension_loaded('sodium')) {
@@ -60,30 +63,19 @@ class EncryptTest extends SapphireTest
         }
 
         // The rows are already decrypted and changed due to the fixtures going through the ORM layer
-        $result = DB::query("SELECT * FROM EncryptedModel");
+        // $result = DB::query("SELECT * FROM EncryptedModel");
         // echo '<pre>';
         // print_r(iterator_to_array($result));
         // die();
 
-        // Replace with actual yml values
-        $data = [
-            'MyText' => 'nacl:_nKhFvZkFwWJssMLf2s6wsucM-6zMmT862XGiYG9KQaL5fgl3CSA_O0gcs3OGPPB4AJoNInC',
-            'MyHTMLText' => 'nacl:jetKPUBgETbLtlfAx1VkZiWJFG65hCuWVSmrwVDX4TTysmJkj2vnhI329oa9eCTlX1kKSjCp7AyFXDKT7Q==',
-            'MyVarchar' => 'nacl:_-5ZsG9txfqMNkHY7xl0JlmCLzrx9BemtC0CwGjYZOt9pCwle9PjHmIZcqJcoEdxpJXplLtKPF-xPGax_pIy',
-            'MyIndexedVarcharValue' => 'nacl:V1G-EPYeHP5-OQu2XAcPp4ym0HuvLpseBqytg3VVddAWoyC3Lm5aAE3G9xx_2uW6QwO0dcnrLFBPNFZ6eQ==',
-            'MyNumberValue' => 'nacl:u4-luf5o0pi-LuGOwLvKVGgD_tLlO8YJ7GbIx4VYYcUvoPNM-9pQfv05iwb0HQ6ugW4=',
-        ];
-        $update = new SQLUpdate("EncryptedModel", $data, "ID IN (1,3)");
-        $update->execute();
-        $data = [
-            'MyText' => 'brng:DwBtLvR876mbL5qfX1IIUDZ7NbrDtyXAgXjB8dDKxfYAYKlajKr9J9NGMY47tkNcrLv4PBbHQ4bAOTZHGsTvmQuGT7he0w==',
-            'MyHTMLText' => 'brng:Nf7VDpEPIQABaZvch8wDY3jCuctBcy0x6sIJO_BkWJL2H86b6O0WvXfDldFihhXxnhzJH3cy-Ygx6sMbgBttDPcT6j8SXFqxeG2pxHI=',
-            'MyVarchar' => 'brng:hoE5xdUMwdJRjXi4jsGs8d_FzBzibUqmiRdoC-oo7_JsFPtz55FzAIb_Qcl-SreatW0uZViRGUvhLGbszKuIUejswmXIqYtSglkc9nHk5g==',
-            'MyIndexedVarcharValue' => 'brng:_RZQDZXqeISYm3WtfTSAS2p0hZz-QDHAWmFSKvcaWLQ5ODRyUKKcPvsGOiIvfBPYmOJH35zh1Hrm2K2LY4ElLNVfAQN_QgcXpxWWNWI=',
-            'MyNumberValue' => 'brng:4AB4YlC-AZHrb6d-t6aiDjZDVdg0BHRN2jAb5CoxiFN89XssvReGkbQMp9jGbXtstk1W94745WWJeiI4n05HsDPu',
-        ];
-        $update = new SQLUpdate("EncryptedModel", $data, "ID IN (2)");
-        $update->execute();
+        // $ymlParser = new Parser;
+        // $ymlData = $ymlParser->parseFile(__DIR__ . '/EncryptTest.yml');
+
+        // foreach ($ymlData["LeKoala\\Encrypt\\Test\\Test_EncryptedModel"] as $name => $data) {
+        //     unset($data['Member']);
+        //     $update = new SQLUpdate("EncryptedModel", $data, ["Name" => $data['Name']]);
+        //     $update->execute();
+        // }
     }
 
     public function tearDown()
@@ -605,19 +597,75 @@ class EncryptTest extends SapphireTest
     }
 
     /**
+     * @group only
+     */
+    public function testMessageEncryption()
+    {
+        $admin = $this->getAdminMember();
+        $user1 = $this->getUser1Member();
+
+        $adminKeys = Test_EncryptionKey::getKeyPair($admin->ID);
+        $user1Keys = Test_EncryptionKey::getKeyPair($user1->ID);
+
+        $this->assertArrayHasKey("public", $adminKeys);
+        $this->assertArrayHasKey("secret", $adminKeys);
+        $this->assertArrayHasKey("public", $user1Keys);
+        $this->assertArrayHasKey("secret", $user1Keys);
+
+        // $pairs = sodium_crypto_box_keypair();
+        // $adminKeys['secret'] = sodium_crypto_box_secretkey($pairs);
+        // $adminKeys['public'] = sodium_crypto_box_publickey($pairs);
+
+        // $pairs = sodium_crypto_box_keypair();
+        // $user1Keys['secret'] = sodium_crypto_box_secretkey($pairs);
+        // $user1Keys['public'] = sodium_crypto_box_publickey($pairs);
+
+        // $adminKeys['secret'] = Hex::encode($adminKeys['secret']);
+        // $adminKeys['public'] = Hex::encode($adminKeys['public']);
+        // $user1Keys['secret'] = Hex::encode($user1Keys['secret']);
+        // $user1Keys['public'] = Hex::encode($user1Keys['public']);
+
+        // $adminKeys['secret'] = Hex::decode($adminKeys['secret']);
+        // $adminKeys['public'] = Hex::decode($adminKeys['public']);
+        // $user1Keys['secret'] = Hex::decode($user1Keys['secret']);
+        // $user1Keys['public'] = Hex::decode($user1Keys['public']);
+
+        $message = 'hello';
+        // 24
+        $nonce = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
+        $encryption_key = sodium_crypto_box_keypair_from_secretkey_and_publickey($adminKeys['secret'], $user1Keys['public']);
+        $encrypted = sodium_crypto_box($message, $nonce, $encryption_key);
+        $this->assertNotEmpty($encrypted);
+        $this->assertNotEquals($message, $encrypted);
+
+        // Revert keys to decrypt
+        $decryption_key = sodium_crypto_box_keypair_from_secretkey_and_publickey($user1Keys['secret'], $adminKeys['public']);
+        $decrypted = sodium_crypto_box_open($encrypted, $nonce, $decryption_key);
+        $this->assertNotEmpty($decrypted);
+        $this->assertEquals($message, $decrypted);
+    }
+
+    /**
      * @group multi-tenant
+     * @group only
      */
     public function testMultiTenantProvider()
     {
+        // echo '<pre>';
+        // print_r(EncryptHelper::generateKeyPair());
+        // die();
         $admin = $this->getAdminMember();
         $user1 = $this->getUser1Member();
         $user2 = $this->getUser2Member();
         $members = $this->getAllMembers();
         $tenants = [];
         foreach ($members as $member) {
-            $key = Test_EncryptionKey::getForMember($member->ID);
-            if ($key) {
-                $tenants[$member->ID] = new StringProvider($key);
+            // You can also use the secret key from a keypair
+            // $key = Test_EncryptionKey::getForMember($member->ID);
+            $keyPair = Test_EncryptionKey::getKeyPair($member->ID);
+            if ($keyPair) {
+                $tenants[$member->ID] = new StringProvider($keyPair['secret']);
+                // $tenants[$member->ID] = new StringProvider($key);
             }
         }
         $adminModel = $this->getAdminTestModel();

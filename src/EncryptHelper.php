@@ -51,6 +51,11 @@ class EncryptHelper
     private static $automatic_rotation = true;
 
     /**
+     * @var boolean
+     */
+    private static $automatic_decryption = true;
+
+    /**
      * @var CipherSweet
      */
     protected static $ciphersweet;
@@ -96,6 +101,23 @@ class EncryptHelper
     public static function setAutomaticRotation($automaticRotation)
     {
         self::config()->automatic_rotation = $automaticRotation;
+    }
+
+    /**
+     * @return bool
+     */
+    public static function getAutomaticDecryption()
+    {
+        return self::config()->automatic_decryption;
+    }
+
+    /**
+     * @param bool $automaticDecryption
+     * @return void
+     */
+    public static function setAutomaticDecryption($automaticDecryption)
+    {
+        self::config()->automatic_decryption = $automaticDecryption;
     }
 
     /**
@@ -169,11 +191,26 @@ class EncryptHelper
      * Attempting to pass a key of an invalid size (i.e. not 256-bit) will result in a CryptoOperationException being thrown.
      * The recommended way to generate a key is to use this method
      *
-     * @return string Something like 4e1c44f87b4cdf21808762970b356891db180a9dd9850e7baf2a79ff3ab8a2fc
+     * @return string A 64 chars string like 4e1c44f87b4cdf21808762970b356891db180a9dd9850e7baf2a79ff3ab8a2fc
      */
     public static function generateKey()
     {
         return Hex::encode(random_bytes(32));
+    }
+
+    /**
+     * @return array Two 64 chars strings
+     */
+    public static function generateKeyPair()
+    {
+        $key_pair = sodium_crypto_box_keypair();
+        $public_key = sodium_crypto_box_publickey($key_pair);
+        $private_key = sodium_crypto_box_secretkey($key_pair);
+
+        return [
+            'public_key' => Hex::encode($public_key),
+            'private_key' => Hex::encode($private_key),
+        ];
     }
 
     /**
