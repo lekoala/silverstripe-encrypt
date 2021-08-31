@@ -594,7 +594,7 @@ class EncryptHelper
     /**
      * Alias of sendDecryptedFile
      * @deprecated
-     * @param File $file
+     * @param File|EncryptedDBFile $file
      * @return void
      */
     public static function sendEncryptedFile(File $file)
@@ -605,7 +605,7 @@ class EncryptHelper
     /**
      * Send a decrypted file
      *
-     * @param File $file
+     * @param File|EncryptedDBFile $file
      * @return void
      */
     public static function sendDecryptedFile(File $file)

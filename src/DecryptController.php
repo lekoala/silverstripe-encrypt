@@ -53,6 +53,6 @@ class DecryptController extends Controller
             }
         }
 
-        $File->sendDecryptedFile();
+        EncryptHelper::sendDecryptedFile($File);
     }
 }

@@ -59,6 +59,7 @@ class EncryptedDBFile extends DataExtension
 
     /**
      * Output file using regular php
+     * Does not send headers, see EncryptHelper::sendDecryptedFile
      *
      * @throws Exception
      * @return void
