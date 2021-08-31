@@ -29,3 +29,13 @@ SilverStripe\Core\Injector\Injector:
   DataListFilter.Encrypted:
     class: LeKoala\Encrypt\EncryptedSearchFilter
   EncryptedSearchFilter: '%$DataListFilter.Encrypted'
+---
+Name: encrypt-controllers
+After: '#rootroutes'
+---
+SilverStripe\Control\Director:
+  rules:
+    '__decrypt': 'LeKoala\Encrypt\DecryptController'
+LeKoala\Encrypt\DecryptController:
+  send_protected: false
+  admin_send_protected: true

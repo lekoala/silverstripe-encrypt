@@ -7,6 +7,7 @@ use SilverStripe\Assets\File;
 use SilverStripe\ORM\DataExtension;
 use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedFile;
+use SilverStripe\Control\Director;
 
 /**
  * Safe and encrypted content file
@@ -28,6 +29,19 @@ class EncryptedDBFile extends DataExtension
         $engine = EncryptHelper::getCipherSweet();
         $encFile = new EncryptedFile($engine);
         return $encFile;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDecryptionLink()
+    {
+        $data = [
+            "ID" => $this->owner->ID,
+            "Hash" => substr($this->owner->File->Hash, 0, 10),
+        ];
+        $url = "__decrypt/?" . http_build_query($data);
+        return Director::absoluteURL($url);
     }
 
     /**

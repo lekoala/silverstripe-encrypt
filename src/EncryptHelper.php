@@ -592,12 +592,23 @@ class EncryptHelper
     }
 
     /**
+     * Alias of sendDecryptedFile
+     * @deprecated
+     * @param File $file
+     * @return void
+     */
+    public static function sendEncryptedFile(File $file)
+    {
+        self::sendDecryptedFile($file);
+    }
+
+    /**
      * Send a decrypted file
      *
      * @param File $file
      * @return void
      */
-    public static function sendEncryptedFile(File $file)
+    public static function sendDecryptedFile(File $file)
     {
         header('Content-disposition: attachment; filename="' . basename($file->getFilename()) . '"');
         header('Content-type: application/octetstream');

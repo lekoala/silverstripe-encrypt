@@ -195,7 +195,7 @@ After your uploads, for example.
 Even if your files are encrypted, they should not be available in your public folder.
 
 Make sure to review [SilverStripe file security](https://docs.silverstripe.org/en/4/developer_guides/files/file_security/) documentation.
-Keeping files .protected and served by a dedicated controller (using `sendDecryptedFile`) is necessary.
+Keeping files .protected and served by a dedicated controller (using `sendDecryptedFile`) is necessary or through the `DecryptController`.
 
 # Key rotation
 
