@@ -70,8 +70,9 @@ class EncryptedDBFile extends DataExtension
                 rewind($output);
                 fpassthru($output);
             }
+        } else {
+            fpassthru($stream);
         }
-        fpassthru($stream);
     }
 
     /**
