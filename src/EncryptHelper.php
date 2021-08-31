@@ -22,6 +22,7 @@ use ParagonIE\CipherSweet\Contract\BackendInterface;
 use ParagonIE\CipherSweet\Planner\FieldIndexPlanner;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
 use ParagonIE\CipherSweet\Contract\KeyProviderInterface;
+use SilverStripe\Control\Director;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -258,6 +259,13 @@ class EncryptHelper
         }
         if (!$key) {
             $key = self::generateKey();
+            if (Director::isDev()) {
+                $envFile = rtrim(Director::baseFolder(), '/') . "/.env";
+                if (is_file($envFile) && is_writable($envFile)) {
+                    file_put_contents($envFile, 'ENCRYPTION_KEY="' . $key . '"', FILE_APPEND);
+                    return $key;
+                }
+            }
             throw new Exception("Please define an ENCRYPTION_KEY in your environment. You can use this one: $key");
         }
         return $key;
