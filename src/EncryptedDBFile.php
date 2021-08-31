@@ -85,19 +85,27 @@ class EncryptedDBFile extends DataExtension
     public function encryptFileIfNeeded()
     {
         $encFile = $this->getEncryptedFileInstance();
+        if (!$this->owner->exists()) {
+            throw new Exception("File does not exist");
+        }
         $stream = $this->owner->getStream();
+
+        if (!$stream) {
+            throw new Exception("Failed to get stream");
+        }
 
         if (!$encFile->isStreamEncrypted($stream)) {
             // php://temp is not a file path, it's a pseudo protocol that always creates a new random temp file when used.
             $output = fopen('php://temp', 'wb');
-            // $success = fwrite($output, 'test');
             $success =  $encFile->encryptStream($stream, $output);
             if (!$success) {
                 throw new Exception("Failed to encrypt stream");
             }
             // dont forget to rewind the stream !
             rewind($output);
-            $this->owner->setFromStream($output, $this->owner->getFilename());
+            // Keep the hash ! encrypting file will change it's content and it would update the hash
+            // This would move the file on the filesystem and mess up FileHash link
+            $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename(), $this->owner->FileHash);
             // Mark as encrypted in db
             $this->owner->Encrypted =  true;
             $this->owner->write();
