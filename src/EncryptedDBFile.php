@@ -4,10 +4,14 @@ namespace LeKoala\Encrypt;
 
 use Exception;
 use SilverStripe\Assets\File;
+use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\Versioned\Versioned;
 use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedFile;
-use SilverStripe\Control\Director;
+use SilverStripe\Assets\Flysystem\FlysystemAssetStore;
+use SilverStripe\Assets\Storage\Sha1FileHashingService;
+use SilverStripe\Core\Config\Config;
 
 /**
  * Safe and encrypted content file
@@ -95,7 +99,7 @@ class EncryptedDBFile extends DataExtension
      * Calls this method to encrypt them
      *
      * @throws Exception
-     * @return void
+     * @return bool
      */
     public function encryptFileIfNeeded()
     {
@@ -109,6 +113,7 @@ class EncryptedDBFile extends DataExtension
             throw new Exception("Failed to get stream");
         }
 
+        $result = false;
         if (!$encFile->isStreamEncrypted($stream)) {
             // php://temp is not a file path, it's a pseudo protocol that always creates a new random temp file when used.
             $output = fopen('php://temp', 'wb');
@@ -118,18 +123,30 @@ class EncryptedDBFile extends DataExtension
             }
             // dont forget to rewind the stream !
             rewind($output);
-            // Keep the hash ! encrypting file will change it's content and it would update the hash
-            // This would move the file on the filesystem and mess up FileHash link
-            $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename(), $this->owner->FileHash);
+
+            // This is really ugly, see https://github.com/silverstripe/silverstripe-assets/issues/467
+            $configFlag = FlysystemAssetStore::config()->keep_empty_dirs;
+            Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', true);
+            $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename());
             // Mark as encrypted in db
             $this->owner->Encrypted =  true;
-            $this->owner->write();
+            if ($this->owner->hasExtension(Versioned::class)) {
+                $result = $this->owner->writeWithoutVersion();
+            } else {
+                $result = $this->owner->write();
+            }
+            Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', $configFlag);
         } elseif ($this->owner->Encrypted) {
             // Stream is not encrypted
             if ($this->owner->Encrypted) {
                 $this->owner->Encrypted = false;
-                $this->owner->write();
+                if ($this->owner->hasExtension(Versioned::class)) {
+                    $result = $this->owner->writeWithoutVersion();
+                } else {
+                    $result = $this->owner->write();
+                }
             }
         }
+        return $result ? true : false;
     }
 }

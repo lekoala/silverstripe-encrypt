@@ -23,9 +23,11 @@ class DecryptController extends Controller
             return $this->httpError(404);
         }
 
+        $sendDraft = $this->config()->send_draft;
+
         /** @var File|EncryptedDBFile $File  */
         $File = File::get()->byID($ID);
-        if (!$File) {
+        if (!$File && $sendDraft) {
             $File = Versioned::get_latest_version(File::class, $ID);
         }
         if (!$File) {

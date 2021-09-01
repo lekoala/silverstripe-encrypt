@@ -37,5 +37,6 @@ SilverStripe\Control\Director:
   rules:
     '__decrypt': 'LeKoala\Encrypt\DecryptController'
 LeKoala\Encrypt\DecryptController:
+  send_draft: true
   send_protected: false
   admin_send_protected: true
