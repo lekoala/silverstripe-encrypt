@@ -16,7 +16,7 @@ class DecryptController extends Controller
     public function index()
     {
         $request = $this->getRequest();
-        $ID = $request->getVar("ID");
+        $ID = (int) $request->getVar("ID");
         $Hash = $request->getVar("Hash");
 
         if (!$ID || !$Hash) {
@@ -28,7 +28,7 @@ class DecryptController extends Controller
         /** @var File|EncryptedDBFile $File  */
         $File = File::get()->byID($ID);
         if (!$File && $sendDraft) {
-            $File = Versioned::get_latest_version(File::class, $ID);
+            $File = Versioned::get_one_by_stage(File::class, Versioned::DRAFT, "ID = " . $ID);
         }
         if (!$File) {
             return $this->httpError(404);
