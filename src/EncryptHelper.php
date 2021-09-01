@@ -606,12 +606,20 @@ class EncryptHelper
      * Send a decrypted file
      *
      * @param File|EncryptedDBFile $file
+     * @param string $fileName
+     * @param string $mimeType
      * @return void
      */
-    public static function sendDecryptedFile(File $file)
+    public static function sendDecryptedFile(File $file, $fileName = null, $mimeType = null)
     {
-        header('Content-disposition: attachment; filename="' . basename($file->getFilename()) . '"');
-        header('Content-type: application/octetstream');
+        if (!$fileName) {
+            $fileName = basename($file->getFilename());
+        }
+        if (!$mimeType) {
+            $mimeType = 'application/octetstream';
+        }
+        header('Content-disposition: attachment; filename="' . $fileName . '"');
+        header('Content-type: ' . $mimeType);
         header('Pragma: no-cache');
         header('Expires: 0');
         $file->sendDecryptedFile();
