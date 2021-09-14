@@ -83,7 +83,8 @@ trait HasEncryptedFields
         $rotator = new RowRotator($oldRow, $newRow);
         $query = new SQLSelect("*", $tableName, [$columnIdentifier => $this->ID]);
         $ciphertext = $query->execute()->first();
-        $ciphertext = EncryptHelper::removeNulls($ciphertext);
+        // not needed anymore since 3.0.1
+        // $ciphertext = EncryptHelper::removeNulls($ciphertext);
         if ($rotator->needsReEncrypt($ciphertext)) {
             return true;
         }

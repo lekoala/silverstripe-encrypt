@@ -10,6 +10,7 @@ use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\EncryptedDBVarchar;
 use LeKoala\Encrypt\HasEncryptedFields;
 use LeKoala\Encrypt\EncryptedDBHTMLText;
+use LeKoala\Encrypt\EncryptedDBJson;
 use LeKoala\Encrypt\EncryptedNumberField;
 use SilverStripe\Security\Member;
 
@@ -22,6 +23,7 @@ use SilverStripe\Security\Member;
  * @property string $MyVarchar
  * @property string $MyNumber
  * @property string $MyVarcharWithIndex
+ * @property string $MyJson
  * @property int $RegularFileID
  * @property int $EncryptedFileID
  */
@@ -38,6 +40,7 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "MyVarchar" => EncryptedDBVarchar::class,
         "MyNumber" => EncryptedNumberField::class . '(["output_size" => 4, "domain_size" => 10])',
         "MyIndexedVarchar" => EncryptedDBField::class,
+        "MyJson" => EncryptedDBJson::class,
     ];
 
     private static $has_one = [

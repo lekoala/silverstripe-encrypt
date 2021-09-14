@@ -26,7 +26,7 @@ use ParagonIE\CipherSweet\Contract\MultiTenantSafeBackendInterface;
 
 /**
  * Test for Encrypt
- *
+ *;
  * Run with the following command : ./vendor/bin/phpunit ./encrypt/tests/EncryptTest.php
  *
  * You may need to run:
@@ -821,5 +821,27 @@ class EncryptTest extends SapphireTest
 
         // Cleanup
         EncryptHelper::clearCipherSweet();
+    }
+
+    public function testJsonField()
+    {
+        $model = $this->getTestModel();
+
+        $longstring = str_repeat("lorem ipsum loquor", 100);
+        $array = [];
+        foreach (range(1, 100) as $i) {
+            $array["key_$i"] = $longstring . $i;
+        }
+
+        $model->MyJson = $array;
+        $model->write();
+
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $model->ID)->first();
+
+        $this->assertEquals(json_encode($array), $freshRecord->MyJson);
+        $this->assertEquals(json_decode(json_encode($array)), $freshRecord->dbObject('MyJson')->decode());
+        $this->assertEquals($array, $freshRecord->dbObject('MyJson')->toArray());
+        $this->assertEquals($array, $freshRecord->dbObject('MyJson')->decodeArray());
+        $this->assertEquals($model->dbObject('MyJson')->toArray(), $freshRecord->dbObject('MyJson')->toArray());
     }
 }

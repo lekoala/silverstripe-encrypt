@@ -66,6 +66,7 @@
     MyNumberLastFourBlindIndex: '95a3'
     MyIndexedVarcharValue: 'brng:m9vgaqMsQEAYLjCCbpC3joNjw050TS7t5rZOB03J4mvS_9MJYj68aBTDDOAaGxHOVgeM8ujgaOqPSBRlWOmoW2cdMsfcRiHHKG4F48w='
     MyIndexedVarcharBlindIndex: 'f6f6771c'
+    MyJson: ''
   # the same as demo 1, for rotate test purposes
   demo3:
     Name: 'demo3'

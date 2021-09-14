@@ -196,6 +196,7 @@ class EncryptHelper
     }
 
     /**
+     * @deprecated
      * @link https://github.com/paragonie/ciphersweet/issues/62
      * @param array $ciphertext
      * @return array

@@ -21,6 +21,8 @@ SilverStripe\Core\Injector\Injector:
     class: LeKoala\Encrypt\EncryptedDBVarchar
   EncryptedDBHTMLText:
     class: LeKoala\Encrypt\EncryptedDBHTMLText
+  EncryptedDBJson:
+    class: LeKoala\Encrypt\EncryptedDBJson
 ---
 Name: encrypt-searchfilters
 After: '#coresearchfilters'

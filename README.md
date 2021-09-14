@@ -121,6 +121,10 @@ This module provides three fields without blind indexes (if you need a blind ind
 
 These fields work exactly like their regular counterpart, except the data is encrypted.
 
+There is also one extra field:
+
+- EncryptedDBJson: this one helps storing encrypted serialized data
+
 # Searching for data
 
 Thanks to CipherSweet, data is encrypted with a blind index. This blind index can be used to search data if you know the value
