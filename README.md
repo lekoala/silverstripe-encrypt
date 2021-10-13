@@ -184,17 +184,16 @@ $decryptedValue = EncryptHelper::decrypt($encrypt);
 
 # Handling encrypted files
 
-This module automatically adds `EncryptedDBFile` extension to your files.
+This module automatically adds `EncryptedDBFile` extension to your files. This is done in an extension of the base
+File class in order to avoid adding one more table in order to add an `Encrypted` field in your table that tracks encryption status
 
-This will add an `Encrypted` field in your table that tracks encryption status
-
-Please note that files are not encrypted by default, you need to call
+Please note that files are not encrypted by default, you need to call `encryptFileIfNeeded` after your uploads.
 
 ```php
 $myFile->encryptFileIfNeeded();
 ```
 
-After your uploads, for example.
+Or use the `EncryptedFile` class.
 
 Even if your files are encrypted, they should not be available in your public folder.
 

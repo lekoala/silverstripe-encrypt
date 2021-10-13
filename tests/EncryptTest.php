@@ -10,6 +10,7 @@ use ParagonIE\ConstantTime\Hex;
 use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
+use LeKoala\Encrypt\EncryptedFile;
 use LeKoala\Encrypt\EncryptHelper;
 use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
@@ -245,6 +246,17 @@ class EncryptTest extends SapphireTest
     public function getEncryptedFile()
     {
         return $this->objFromFixture(File::class, 'encrypted');
+    }
+
+    /**
+     * @return EncryptedFile
+     */
+    public function getEncryptedFile2()
+    {
+        // Figure out how to do this properly in yml
+        $record = $this->objFromFixture(File::class, 'encrypted2');
+        $file = new EncryptedFile($record->toMap());
+        return $file;
     }
 
     /**
@@ -638,26 +650,53 @@ class EncryptTest extends SapphireTest
     {
         $regularFile = $this->getRegularFile();
         $encryptedFile = $this->getEncryptedFile();
+        $encryptedFile2 = $this->getEncryptedFile2();
 
         $this->assertEquals(0, $regularFile->Encrypted);
-        $this->assertEquals(1, $encryptedFile->Encrypted);
+
+        // Even if we marked it as 1 in the yml, it has been set to 0 when writing
+        $this->assertEquals(0, $encryptedFile->Encrypted);
+        $this->assertEquals(0, $encryptedFile2->Encrypted);
 
         // test encryption
-
         $string = 'Some content';
-
         $stream = fopen('php://memory', 'r+');
         fwrite($stream, $string);
         rewind($stream);
-
         $encryptedFile->setFromStream($stream, 'secret.doc');
         $encryptedFile->write();
+        $encryptedFile2->setFromStream($stream, 'secret.doc');
+        $encryptedFile2->write();
 
         $this->assertFalse($encryptedFile->isEncrypted());
+        // It is automatically encrypted
+        $this->assertTrue($encryptedFile2->isEncrypted());
 
         $encryptedFile->encryptFileIfNeeded();
 
         $this->assertTrue($encryptedFile->isEncrypted());
+        $this->assertTrue($encryptedFile->Encrypted);
+
+        // still encrypted?
+        $encryptedFile->encryptFileIfNeeded();
+        $this->assertTrue($encryptedFile->isEncrypted());
+        $this->assertTrue($encryptedFile->Encrypted);
+
+        // set something new
+        $string = 'Some content';
+        $stream = fopen('php://memory', 'r+');
+        fwrite($stream, $string);
+        rewind($stream);
+        $encryptedFile->setFromStream($stream, 'secret.doc');
+        $encryptedFile->write();
+
+        // It is not encrypted nor marked as such
+        $this->assertFalse($encryptedFile->isEncrypted());
+        $this->assertFalse($encryptedFile->Encrypted);
+
+        // No file => no encryption
+        $encryptedFile2->deleteFile();
+        $this->assertFalse($encryptedFile->isEncrypted());
     }
 
     /**

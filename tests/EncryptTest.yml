@@ -41,6 +41,15 @@
     Parent: =>SilverStripe\Assets\Folder.uploads
     Name: secret.doc
     Title: A secret file
+  encrypted2:
+    Encrypted: 0
+    ClassName: 'LeKoala\Encrypt\EncryptedFile'
+    Created: '2015-08-19 00:00:00'
+    LastUpdated: '2015-08-27 00:00:00'
+    Owner: =>SilverStripe\Security\Member.admin
+    Parent: =>SilverStripe\Assets\Folder.uploads
+    Name: secret2.doc
+    Title: A secret file
 'LeKoala\Encrypt\Test\Test_EncryptedModel':
   # this record use old encryption => needs to be rotated
   demo:

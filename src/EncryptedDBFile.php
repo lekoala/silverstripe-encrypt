@@ -10,7 +10,6 @@ use SilverStripe\Versioned\Versioned;
 use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedFile;
 use SilverStripe\Assets\Flysystem\FlysystemAssetStore;
-use SilverStripe\Assets\Storage\Sha1FileHashingService;
 use SilverStripe\Core\Config\Config;
 
 /**
@@ -56,9 +55,40 @@ class EncryptedDBFile extends DataExtension
      */
     public function isEncrypted()
     {
-        $encFile = $this->getEncryptedFileInstance();
         $stream = $this->owner->getStream();
+        if (!$stream) {
+            return false;
+        }
+        $encFile = $this->getEncryptedFileInstance();
         return $encFile->isStreamEncrypted($stream);
+    }
+
+    public function updateEncryptionStatus($forceStatus = null)
+    {
+        if ($forceStatus !== null) {
+            $this->owner->Encrypted = $forceStatus;
+        } else {
+            if ($this->isEncrypted()) {
+                $this->owner->Encrypted = true;
+            } else {
+                $this->owner->Encrypted = false;
+            }
+        }
+        if ($this->owner->hasExtension(Versioned::class)) {
+            $result = $this->owner->writeWithoutVersion();
+        } else {
+            $result = $this->owner->write();
+        }
+        return $result;
+    }
+
+    public function onBeforeWrite()
+    {
+        // Check if the flag is still valid
+        if ($this->owner->Encrypted && !$this->isEncrypted()) {
+            $this->owner->Encrypted = false;
+        }
+        // We don't check for the opposite because it is handled by encryptFileIfNeeded
     }
 
     /**
@@ -105,12 +135,16 @@ class EncryptedDBFile extends DataExtension
      */
     public function encryptFileIfNeeded()
     {
+        // Already mark as encrypted
+        if ($this->owner->Encrypted) {
+            return true;
+        }
+
         $encFile = $this->getEncryptedFileInstance();
         if (!$this->owner->exists()) {
             throw new Exception("File does not exist");
         }
         $stream = $this->owner->getStream();
-
         if (!$stream) {
             throw new Exception("Failed to get stream");
         }
@@ -133,23 +167,12 @@ class EncryptedDBFile extends DataExtension
             Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', true);
             $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename());
             // Mark as encrypted in db
-            $this->owner->Encrypted = true;
-            if ($this->owner->hasExtension(Versioned::class)) {
-                $result = $this->owner->writeWithoutVersion();
-            } else {
-                $result = $this->owner->write();
-            }
+            $this->updateEncryptionStatus(true);
             Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', $configFlag);
         }
 
-        // Make sure it's marked as encrypted
         if (!$this->owner->Encrypted) {
-            $this->owner->Encrypted = true;
-            if ($this->owner->hasExtension(Versioned::class)) {
-                $result = $this->owner->writeWithoutVersion();
-            } else {
-                $result = $this->owner->write();
-            }
+            $this->updateEncryptionStatus();
         }
 
         return $result ? true : false;
