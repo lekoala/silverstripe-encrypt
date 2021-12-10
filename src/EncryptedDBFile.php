@@ -6,11 +6,11 @@ use Exception;
 use SilverStripe\Assets\File;
 use SilverStripe\Control\Director;
 use SilverStripe\ORM\DataExtension;
+use SilverStripe\Core\Config\Config;
 use SilverStripe\Versioned\Versioned;
 use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedFile;
 use SilverStripe\Assets\Flysystem\FlysystemAssetStore;
-use SilverStripe\Core\Config\Config;
 
 /**
  * Safe and encrypted content file
@@ -20,19 +20,14 @@ use SilverStripe\Core\Config\Config;
  */
 class EncryptedDBFile extends DataExtension
 {
+    /**
+     * @var EncryptedFile
+     */
+    protected static $encryptionEngine;
+
     private static $db = [
         "Encrypted" => "Boolean",
     ];
-
-    /**
-     * @return EncryptedFile
-     */
-    protected function getEncryptedFileInstance()
-    {
-        $engine = EncryptHelper::getCipherSweet();
-        $encFile = new EncryptedFile($engine);
-        return $encFile;
-    }
 
     /**
      * @return string
@@ -59,14 +54,19 @@ class EncryptedDBFile extends DataExtension
         if (!$stream) {
             return false;
         }
-        $encFile = $this->getEncryptedFileInstance();
+        $encFile = EncryptHelper::getEncryptedFileInstance();
         return $encFile->isStreamEncrypted($stream);
     }
 
-    public function updateEncryptionStatus($forceStatus = null)
+    /**
+     * @param boolean $forceStatus
+     * @param boolean $write
+     * @return boolean
+     */
+    public function updateEncryptionStatus($forceStatus = null, $write = true)
     {
         if ($forceStatus !== null) {
-            $this->owner->Encrypted = $forceStatus;
+            $this->owner->Encrypted = (bool)$forceStatus;
         } else {
             if ($this->isEncrypted()) {
                 $this->owner->Encrypted = true;
@@ -74,21 +74,14 @@ class EncryptedDBFile extends DataExtension
                 $this->owner->Encrypted = false;
             }
         }
-        if ($this->owner->hasExtension(Versioned::class)) {
-            $result = $this->owner->writeWithoutVersion();
-        } else {
-            $result = $this->owner->write();
+        if ($write) {
+            if ($this->owner->hasExtension(Versioned::class)) {
+                $this->owner->writeWithoutVersion();
+            } else {
+                $this->owner->write();
+            }
         }
-        return $result;
-    }
-
-    public function onBeforeWrite()
-    {
-        // Check if the flag is still valid
-        if ($this->owner->Encrypted && !$this->isEncrypted()) {
-            $this->owner->Encrypted = false;
-        }
-        // We don't check for the opposite because it is handled by encryptFileIfNeeded
+        return $this->owner->Encrypted;
     }
 
     /**
@@ -105,7 +98,7 @@ class EncryptedDBFile extends DataExtension
         }
         $stream = $this->owner->getStream();
         if ($this->owner->Encrypted) {
-            $encFile = $this->getEncryptedFileInstance();
+            $encFile = EncryptHelper::getEncryptedFileInstance();
             $output = fopen('php://temp', 'w+b');
 
             // We need to decrypt stream
@@ -131,16 +124,15 @@ class EncryptedDBFile extends DataExtension
      * Call this method to encrypt them
      *
      * @throws Exception
+     * @param bool $write
      * @return bool
      */
-    public function encryptFileIfNeeded()
+    public function encryptFileIfNeeded($write = true)
     {
         // Already mark as encrypted
         if ($this->owner->Encrypted) {
             return true;
         }
-
-        $encFile = $this->getEncryptedFileInstance();
         if (!$this->owner->exists()) {
             throw new Exception("File does not exist");
         }
@@ -149,10 +141,11 @@ class EncryptedDBFile extends DataExtension
             throw new Exception("Failed to get stream");
         }
 
-        $result = false;
+        $encFile = EncryptHelper::getEncryptedFileInstance();
+        $isEncrypted = $encFile->isStreamEncrypted($stream);
 
         // It's not yet encrypted
-        if (!$encFile->isStreamEncrypted($stream)) {
+        if (!$isEncrypted) {
             // php://temp is not a file path, it's a pseudo protocol that always creates a new random temp file when used.
             $output = fopen('php://temp', 'wb');
             $success =  $encFile->encryptStream($stream, $output);
@@ -167,14 +160,16 @@ class EncryptedDBFile extends DataExtension
             Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', true);
             $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename());
             // Mark as encrypted in db
-            $this->updateEncryptionStatus(true);
+            $this->updateEncryptionStatus(true, $write);
             Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', $configFlag);
+
+            return true;
         }
 
-        if (!$this->owner->Encrypted) {
-            $this->updateEncryptionStatus();
+        if ($this->owner->Encrypted != $isEncrypted) {
+            $this->updateEncryptionStatus($isEncrypted, $write);
         }
 
-        return $result ? true : false;
+        return $isEncrypted;
     }
 }

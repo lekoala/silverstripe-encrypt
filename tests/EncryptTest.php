@@ -654,8 +654,10 @@ class EncryptTest extends SapphireTest
 
         $this->assertEquals(0, $regularFile->Encrypted);
 
-        // Even if we marked it as 1 in the yml, it has been set to 0 when writing
-        $this->assertEquals(0, $encryptedFile->Encrypted);
+        // Even if we marked it as 1 in the yml, reflect actual value
+        $encryptedFile->updateEncryptionStatus();
+
+        $this->assertEquals(0, $encryptedFile->Encrypted, "The encrypted flag was not reset");
         $this->assertEquals(0, $encryptedFile2->Encrypted);
 
         // test encryption
@@ -689,10 +691,18 @@ class EncryptTest extends SapphireTest
         rewind($stream);
         $encryptedFile->setFromStream($stream, 'secret.doc');
         $encryptedFile->write();
+        $encryptedFile2->setFromStream($stream, 'secret.doc');
+        $encryptedFile2->write();
+
+        // we need to update manually
+        $encryptedFile->updateEncryptionStatus();
 
         // It is not encrypted nor marked as such
         $this->assertFalse($encryptedFile->isEncrypted());
         $this->assertFalse($encryptedFile->Encrypted);
+        // Ir was automatically encrypted again
+        $this->assertTrue($encryptedFile2->isEncrypted());
+        $this->assertTrue($encryptedFile2->Encrypted);
 
         // No file => no encryption
         $encryptedFile2->deleteFile();

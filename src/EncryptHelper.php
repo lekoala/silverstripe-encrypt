@@ -8,9 +8,11 @@ use SilverStripe\Assets\File;
 use ParagonIE\ConstantTime\Hex;
 use SilverStripe\Core\ClassInfo;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Control\Director;
 use SilverStripe\Core\Environment;
 use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\FieldType\DBText;
+use ParagonIE\CipherSweet\EncryptedFile;
 use SilverStripe\ORM\FieldType\DBVarchar;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\FieldType\DBHTMLText;
@@ -22,7 +24,7 @@ use ParagonIE\CipherSweet\Contract\BackendInterface;
 use ParagonIE\CipherSweet\Planner\FieldIndexPlanner;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
 use ParagonIE\CipherSweet\Contract\KeyProviderInterface;
-use SilverStripe\Control\Director;
+use SilverStripe\ORM\DB;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -65,6 +67,11 @@ class EncryptHelper
      * @var CipherSweet
      */
     protected static $ciphersweet;
+
+    /**
+     * @var EncryptedFile
+     */
+    protected static $encryptedFile;
 
     /**
      * @var array
@@ -355,6 +362,26 @@ class EncryptHelper
     }
 
     /**
+     * @return EncryptedFile
+     */
+    public static function getEncryptedFileInstance()
+    {
+        if (!self::$encryptedFile) {
+            self::$encryptedFile = new EncryptedFile(self::getCipherSweet());
+        }
+        return self::$encryptedFile;
+    }
+
+    /**
+     * @param int $ID
+     * @return bool
+     */
+    public static function checkIfFileIsEncrypted($ID)
+    {
+        return (bool)DB::prepared_query("SELECT Encrypted FROM File WHERE ID = ?", [$ID]);
+    }
+
+    /**
      * @param KeyProviderInterface $provider
      * @return CipherSweet
      */
@@ -381,6 +408,7 @@ class EncryptHelper
     public static function clearCipherSweet()
     {
         self::$ciphersweet = null;
+        self::$encryptedFile = null;
     }
 
     /**

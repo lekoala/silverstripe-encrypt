@@ -193,9 +193,19 @@ Please note that files are not encrypted by default, you need to call `encryptFi
 $myFile->encryptFileIfNeeded();
 ```
 
-Or use the `EncryptedFile` class.
+Or use the `EncryptedFile` class. It's better to use the `EncryptedFile` class because it will properly update the Encrypted
+flag if you update the file for example. Prefer checking Encrypted flag rather than using `isEncrypted` because this method
+is rather slow.
 
-Even if your files are encrypted, they should not be available in your public folder.
+Also, performance wise, remember that loading a file in order to check it's state can be slow
+
+```php
+$file = $this->File();
+$file->encryptFileIfNeeded();
+// fine for one record, not fine in a loop! Use EncryptHelper::checkIfFileIsEncrypted with ID
+```
+
+NOTE: Even if your files are encrypted, they should not be available in your public folder.
 
 Make sure to review [SilverStripe file security](https://docs.silverstripe.org/en/4/developer_guides/files/file_security/) documentation.
 Keeping files .protected and served by a dedicated controller (using `sendDecryptedFile`) is necessary or through the `DecryptController`.
