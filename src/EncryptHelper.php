@@ -378,7 +378,7 @@ class EncryptHelper
      */
     public static function checkIfFileIsEncrypted($ID)
     {
-        return (bool)DB::prepared_query("SELECT Encrypted FROM File WHERE ID = ?", [$ID]);
+        return (bool)DB::prepared_query("SELECT Encrypted FROM File WHERE ID = ?", [$ID])->value();
     }
 
     /**
