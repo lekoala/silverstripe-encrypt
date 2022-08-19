@@ -49,7 +49,7 @@ class EncryptTest extends SapphireTest
         Test_EncryptionKey::class,
     ];
 
-    public function setUp()
+    public function setUp(): void
     {
         // We need to disable automatic decryption to avoid fixtures being re encrypted with the wrong keys
         EncryptHelper::setAutomaticDecryption(false);
@@ -69,6 +69,11 @@ class EncryptTest extends SapphireTest
 
         // $this->showRowsFromDb();
         // $this->writeDataFromYml();
+    }
+
+    public function tearDown(): void
+    {
+        parent::tearDown();
     }
 
     protected function generateData()
@@ -141,11 +146,6 @@ class EncryptTest extends SapphireTest
             }
             echo "    $k: '$v'\n";
         }
-    }
-
-    public function tearDown()
-    {
-        parent::tearDown();
     }
 
     /**
