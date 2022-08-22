@@ -37,6 +37,13 @@
   "extra": {
     "installer-name": "encrypt"
   },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "silverstripe/recipe-plugin": true,
+      "silverstripe/vendor-plugin": true
+    }
+  },
   "support": {
     "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
   },
