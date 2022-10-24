@@ -101,8 +101,8 @@ Array
 
 For each encrypted class, you can set the following config values:
 
-- estimated_population: the number of expected records. 
-The higher the population, the higher is the coincidence count (which makes your blind index safe to use)
+- estimated_population: the number of expected records.
+  The higher the population, the higher is the coincidence count (which makes your blind index safe to use)
 - output_size and domain_size: these settings are configured at field level.
 
 ```php
@@ -110,6 +110,19 @@ private static $db = [
     "MyNumber" => EncryptedNumberField::class . '(["output_size" => 4, "domain_size" => 10, "index_size" => 32])',
 ];
 ```
+
+# Fast hashes
+
+By default, this module doesn't enable fast hash indexes. If you expect to do a lot of queries on large table,
+you need to enable it.
+
+```yml
+LeKoala\Encrypt\EncryptHelper:
+  fasthash: true
+```
+
+This is a global settings. Fash hashes are NOT the same as slow hashes so beware if you have existing data, you need
+to migrate it before. You can use `EncryptHelper::convertHashType` to help you along if needed.
 
 # Simple field types
 
@@ -245,13 +258,13 @@ This modules gives you some tools and defaults that helps you to have
 your indexes properly configured.
 
 By default, blind indexes will have a size of 32 chars which allow a large numbers
-of records in your table with a really low 
+of records in your table with a really low
 
 # Using aad
 
 By default, this module will use AAD.
 
-This binds the ciphertext to a specific row, thereby preventing an attacker capable of replacing ciphertexts 
+This binds the ciphertext to a specific row, thereby preventing an attacker capable of replacing ciphertexts
 and using legitimate app access to decrypt ciphertexts they wouldn't otherwise have access to.
 
 This setting is controlled by `aad_source` parameter that takes by default the "ID" value.

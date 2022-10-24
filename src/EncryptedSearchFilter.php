@@ -5,9 +5,7 @@ namespace LeKoala\Encrypt;
 use SilverStripe\ORM\DB;
 use InvalidArgumentException;
 use SilverStripe\ORM\DataQuery;
-use ParagonIE\CipherSweet\BlindIndex;
 use ParagonIE\CipherSweet\EncryptedField;
-use SilverStripe\ORM\DataObject;
 use SilverStripe\ORM\Filters\SearchFilter;
 
 /**
@@ -38,15 +36,14 @@ class EncryptedSearchFilter extends SearchFilter
     }
 
     /**
+     * @param CipherSweet $engine
+     * @param bool $fashHash
      * @return EncryptedField
      */
-    public function getEncryptedField()
+    public function getEncryptedField($engine = null, $fashHash = null)
     {
-        $engine = EncryptHelper::getCipherSweet();
-        $table = DataObject::getSchema()->tableName($this->model);
-        $encryptedField = (new EncryptedField($engine, $table, $this->name . "Value"))
-            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], 32));
-        return $encryptedField;
+        $singleton = singleton($this->model);
+        return $singleton->dbObject($this->name)->getEncryptedField($engine, $fashHash);
     }
 
     /**
@@ -56,7 +53,7 @@ class EncryptedSearchFilter extends SearchFilter
      */
     public function getEncryptedValue()
     {
-        return $this->getEncryptedField()->getBlindIndex($this->getValue(), $this->name . 'BlindIndex');
+        return $this->getEncryptedField()->getBlindIndex($this->getValue(), $this->name . EncryptedDBField::INDEX_SUFFIX);
     }
 
     /**

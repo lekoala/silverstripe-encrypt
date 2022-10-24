@@ -51,6 +51,12 @@ class EncryptHelper
      * @config
      * @var bool
      */
+    private static $fasthash = false;
+
+    /**
+     * @config
+     * @var bool
+     */
     private static $automatic_rotation = true;
 
     /**
@@ -151,6 +157,23 @@ class EncryptHelper
     }
 
     /**
+     * @return bool
+     */
+    public static function getFashHash()
+    {
+        return self::config()->fasthash;
+    }
+
+    /**
+     * @param bool $fasthash
+     * @return void
+     */
+    public static function setFastHash($fasthash)
+    {
+        self::config()->fasthash = $fasthash;
+    }
+
+    /**
      * @link https://ciphersweet.paragonie.com/php/blind-index-planning
      * @return array
      */
@@ -200,6 +223,45 @@ class EncryptHelper
         $recommended['coincidence_ratio'] = $coincidenceCount / $estimatedPopulation * 100;
         $recommended['estimated_population'] = $estimatedPopulation;
         return $recommended;
+    }
+
+    /**
+     * @param DataObject $record
+     * @param string $field
+     * @param boolean $fasthash
+     * @return boolean
+     */
+    public static function convertHashType($record, $field, $fasthash = true)
+    {
+        /** @var EncryptedDBField $EncryptedDBField */
+        $EncryptedDBField = $record->dbObject($field);
+        $temp = (string)$record->$field;
+
+        $encryptedField = $EncryptedDBField->getEncryptedField(null, $fasthash);
+
+        $dataForStorage = $encryptedField->prepareForStorage($temp);
+        $encryptedValue = $dataForStorage[0];
+        $blindIndexes = $dataForStorage[1];
+
+        $indexSuffix = EncryptedDBField::INDEX_SUFFIX;
+        $valueSuffix = EncryptedDBField::VALUE_SUFFIX;
+        $valueField = $field . $valueSuffix;
+        $indexField = $field . $indexSuffix;
+
+        $prevIndex = $record->$indexField;
+
+        $newValue = $encryptedValue;
+        $newIndex = $blindIndexes[$field . $indexSuffix] ?? null;
+
+        if ($prevIndex != $newIndex) {
+            $table = $EncryptedDBField->getTable();
+            if (!$table) {
+                throw new Exception("Table not set");
+            }
+            DB::prepared_query("UPDATE $table SET $indexField = ? WHERE $indexField = ?", [$newIndex, $prevIndex]);
+            return true;
+        }
+        return false;
     }
 
     /**

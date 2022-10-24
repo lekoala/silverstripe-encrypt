@@ -893,4 +893,61 @@ class EncryptTest extends SapphireTest
         $this->assertEquals($array, $freshRecord->dbObject('MyJson')->decodeArray());
         $this->assertEquals($model->dbObject('MyJson')->toArray(), $freshRecord->dbObject('MyJson')->toArray());
     }
+
+    public function testFashHash()
+    {
+        $model = $this->getTestModel();
+
+        /** @var EncryptedDBField $encrField */
+        $encrField = $model->dbObject('MyIndexedVarchar');
+
+        $value = (string)$model->MyIndexedVarchar;
+        $bi = $model->MyIndexedVarcharBlindIndex;
+
+        $aad = '';
+
+        $t = microtime(true);
+        $slowBi = $encrField->getEncryptedField(null, false)->prepareForStorage($value, $aad);
+        $slowBi2 = $encrField->getEncryptedField(null, false)->prepareForStorage($value, $aad);
+        $et = microtime(true) - $t;
+
+        $t2 = microtime(true);
+        $fastBi = $encrField->getEncryptedField(null, true)->prepareForStorage($value, $aad);
+        $fastBi2 = $encrField->getEncryptedField(null, true)->prepareForStorage($value, $aad);
+        $et2 = microtime(true) - $t2;
+
+        // Values are not equals, but blind indexes are
+        $this->assertNotEquals($slowBi2[0], $slowBi[0]);
+        $this->assertEquals($slowBi2[1]['MyIndexedVarcharBlindIndex'], $slowBi[1]['MyIndexedVarcharBlindIndex']);
+        $this->assertEquals($bi, $slowBi[1]['MyIndexedVarcharBlindIndex']);
+        $this->assertNotEquals($fastBi2[0], $fastBi[0]);
+        $this->assertEquals($fastBi2[1]['MyIndexedVarcharBlindIndex'], $fastBi[1]['MyIndexedVarcharBlindIndex']);
+
+        // Slow indexes are not the same as fast indexes
+        $this->assertNotEquals($fastBi[1]['MyIndexedVarcharBlindIndex'], $slowBi[1]['MyIndexedVarcharBlindIndex']);
+        $this->assertNotEquals($fastBi2[1]['MyIndexedVarcharBlindIndex'], $slowBi2[1]['MyIndexedVarcharBlindIndex']);
+
+        // It is faster to generate fast indexes
+        // $et2 = 0.0004119873046875
+        // $et = 0.0683131217956543
+
+        $this->assertTrue($et2 <= $et);
+
+        // We can convert and keep stored values readable
+
+        $result = EncryptHelper::convertHashType($model, 'MyIndexedVarchar');
+        $this->assertTrue($result);
+
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $model->ID)->first();
+        $freshValue = (string)$freshRecord->MyIndexedVarchar;
+        $this->assertEquals($value, $freshValue);
+
+        // We can find it using new hash
+        /** @var EncryptedDBField $freshEncrField */
+        $freshEncrField = $freshRecord->dbObject('MyIndexedVarchar');
+
+        $blindIndex = $freshEncrField->getEncryptedField(null, true)->getBlindIndex($freshValue, 'MyIndexedVarcharBlindIndex');
+        $freshRecord2 = Test_EncryptedModel::get()->filter('MyIndexedVarcharBlindIndex', $blindIndex)->first();
+        $this->assertEquals($freshRecord2->ID, $freshRecord->ID);
+    }
 }

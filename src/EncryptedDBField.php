@@ -123,17 +123,21 @@ class EncryptedDBField extends DBComposite
 
     /**
      * @param CipherSweet $engine
+     * @param bool $fashHash
      * @return EncryptedField
      */
-    public function getEncryptedField($engine = null)
+    public function getEncryptedField($engine = null, $fashHash = null)
     {
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
         }
+        if ($fashHash === null) {
+            $fashHash = EncryptHelper::getFashHash();
+        }
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
         // fieldName needs to match exact db name for row rotator to work properly
         $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . self::VALUE_SUFFIX))
-            ->addBlindIndex(new BlindIndex($this->name . self::INDEX_SUFFIX, [], $indexSize));
+            ->addBlindIndex(new BlindIndex($this->name . self::INDEX_SUFFIX, [], $indexSize, $fashHash));
         return $encryptedField;
     }
 

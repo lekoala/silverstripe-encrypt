@@ -56,19 +56,23 @@ class EncryptedNumberField extends EncryptedDBField
 
     /**
      * @param CipherSweet $engine
+     * @param bool $fashHash
      * @return EncryptedField
      */
-    public function getEncryptedField($engine = null)
+    public function getEncryptedField($engine = null, $fashHash = null)
     {
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();
+        }
+        if ($fashHash === null) {
+            $fashHash = EncryptHelper::getFashHash();
         }
         $lastFourIndexSize = $this->getLastFourIndexSize(self::SMALL_INDEX_SIZE);
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
         // fieldName needs to match exact db name for row rotator to work properly
         $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . "Value"))
-            ->addBlindIndex(new BlindIndex($this->name . "LastFourBlindIndex", [new LastFourDigits()], $lastFourIndexSize))
-            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], $indexSize));
+            ->addBlindIndex(new BlindIndex($this->name . "LastFourBlindIndex", [new LastFourDigits()], $lastFourIndexSize, $fashHash))
+            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], $indexSize, $fashHash));
         return $encryptedField;
     }
 
