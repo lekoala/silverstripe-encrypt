@@ -122,7 +122,7 @@ LeKoala\Encrypt\EncryptHelper:
   fasthash: true
 ```
 
-This is a global settings. Fash hashes are NOT the same as slow hashes so beware if you have existing data, you need
+This is a global settings. Fast hashes are NOT the same as slow hashes so beware if you have existing data, you need
 to migrate it before. You can use `EncryptHelper::convertHashType` to help you along if needed.
 
 # Simple field types
