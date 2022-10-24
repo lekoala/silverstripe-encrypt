@@ -16,10 +16,12 @@ use SilverStripe\Core\Environment;
 use SilverStripe\Dev\SapphireTest;
 use Symfony\Component\Yaml\Parser;
 use SilverStripe\Security\Security;
+use LeKoala\Encrypt\EncryptedDBJson;
 use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\MemberKeyProvider;
 use ParagonIE\CipherSweet\CipherSweet;
 use LeKoala\Encrypt\HasEncryptedFields;
+use ParagonIE\CipherSweet\JsonFieldMap;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
@@ -892,6 +894,47 @@ class EncryptTest extends SapphireTest
         $this->assertEquals($array, $freshRecord->dbObject('MyJson')->toArray());
         $this->assertEquals($array, $freshRecord->dbObject('MyJson')->decodeArray());
         $this->assertEquals($model->dbObject('MyJson')->toArray(), $freshRecord->dbObject('MyJson')->toArray());
+    }
+
+    public function testEncryptedJsonField()
+    {
+        $model = $this->getTestModel();
+
+        /** @var EncryptedDBJson $field */
+        $field = $model->dbObject('MyEncryptedJson');
+
+        $map = (new JsonFieldMap())
+            ->addTextField('name')
+            ->addBooleanField('active')
+            ->addIntegerField('age');
+
+        // d(str_replace("\"", "\\\"", (string)$map));
+
+        $encryptedJsonField = $field->getEncryptedJsonField();
+
+        $data = [
+            'name' => 'test name',
+            'active' => true,
+            'age' => 42,
+            'not_encrypted' => "this is not encrypted"
+        ];
+
+        $encryptedJsonData = $encryptedJsonField->encryptJson($data);
+
+        $decoded = json_decode($encryptedJsonData, JSON_OBJECT_AS_ARRAY);
+
+        // it is properly encrypted if required
+        $this->assertEquals($data['not_encrypted'], $decoded['not_encrypted']);
+        $this->assertNotEquals($data['name'], $decoded['name']);
+
+        // we can write
+        $model->MyEncryptedJson = $data;
+        $model->write();
+
+        $dbData = DB::query("SELECT MyEncryptedJson FROM EncryptedModel WHERE ID = " . $model->ID)->value();
+        $decodedDbData = json_decode($dbData, JSON_OBJECT_AS_ARRAY);
+        $this->assertEquals($data['not_encrypted'], $decodedDbData['not_encrypted']);
+        $this->assertNotEquals($data['name'], $decodedDbData['name']);
     }
 
     public function testFashHash()

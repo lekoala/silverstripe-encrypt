@@ -3,6 +3,8 @@
 namespace LeKoala\Encrypt;
 
 use SilverStripe\Forms\HiddenField;
+use ParagonIE\CipherSweet\JsonFieldMap;
+use ParagonIE\CipherSweet\EncryptedJsonField;
 
 /**
  * A simple extension over EncryptedDBText that supports json
@@ -16,6 +18,18 @@ use SilverStripe\Forms\HiddenField;
  */
 class EncryptedDBJson extends EncryptedDBText
 {
+
+    /**
+     * @return string
+     */
+    public function getJsonMap()
+    {
+        if (array_key_exists('map', $this->options)) {
+            return $this->options['map'];
+        }
+        return null;
+    }
+
     /**
      * We cannot search on json fields
      *
@@ -124,9 +138,25 @@ class EncryptedDBJson extends EncryptedDBText
      */
     public function setValue($value, $record = null, $markChanged = true)
     {
-        if (is_array($value)) {
-            $value = json_encode($value);
+        // Return early if we keep encrypted value in memory
+        if (!EncryptHelper::getAutomaticDecryption()) {
+            $this->value = $value;
+            return $this;
         }
+
+        if ($this->getJsonMap() && $value && is_string($value)) {
+            $this->value = $this->getEncryptedJsonField()->decryptJson($value);
+            return $this;
+        }
+        if (is_array($value)) {
+            if ($this->getJsonMap()) {
+                $aad = $this->encryptionAad;
+                $value = $this->getEncryptedJsonField()->encryptJson($value, $aad);
+            } else {
+                $value = json_encode($value);
+            }
+        }
+
         return parent::setValue($value, $record, $markChanged);
     }
 
@@ -136,7 +166,13 @@ class EncryptedDBJson extends EncryptedDBText
     public function prepValueForDB($value)
     {
         if (is_array($value)) {
-            $value = json_encode($value);
+            if ($this->getJsonMap()) {
+                $aad = $this->encryptionAad;
+                $value = $this->getEncryptedJsonField()->encryptJson($value, $aad);
+                return $value;
+            } else {
+                $value = json_encode($value);
+            }
         }
         return parent::prepValueForDB($value);
     }
@@ -148,5 +184,23 @@ class EncryptedDBJson extends EncryptedDBText
     public function scalarValueOnly()
     {
         return false;
+    }
+
+    /**
+     * @param CipherSweet $engine
+     * @param JsonFieldMap $map
+     * @return EncryptedJsonField
+     */
+    public function getEncryptedJsonField($engine = null, $map = null)
+    {
+        if ($engine === null) {
+            $engine = EncryptHelper::getCipherSweet();
+        }
+        if ($map === null) {
+            $mapString = $this->getJsonMap();
+            $map = JsonFieldMap::fromString($mapString);
+        }
+        $encryptedField = EncryptedJsonField::create($engine, $map, $this->tableName, $this->name);
+        return $encryptedField;
     }
 }

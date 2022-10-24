@@ -5,15 +5,16 @@ namespace LeKoala\Encrypt\Test;
 use SilverStripe\Assets\File;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Member;
+use LeKoala\Encrypt\EncryptedFile;
+use LeKoala\Encrypt\EncryptedDBJson;
 use LeKoala\Encrypt\EncryptedDBText;
 use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\EncryptedDBVarchar;
 use LeKoala\Encrypt\HasEncryptedFields;
+use ParagonIE\CipherSweet\JsonFieldMap;
 use LeKoala\Encrypt\EncryptedDBHTMLText;
-use LeKoala\Encrypt\EncryptedDBJson;
-use LeKoala\Encrypt\EncryptedFile;
 use LeKoala\Encrypt\EncryptedNumberField;
-use SilverStripe\Security\Member;
 
 /**
  * A test model for our encryption
@@ -25,6 +26,7 @@ use SilverStripe\Security\Member;
  * @property string $MyNumber
  * @property string $MyVarcharWithIndex
  * @property string $MyJson
+ * @property string $MyEncryptedJson
  * @property int $RegularFileID
  * @property int $EncryptedFileID
  */
@@ -42,6 +44,7 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "MyNumber" => EncryptedNumberField::class . '(["output_size" => 4, "domain_size" => 10])',
         "MyIndexedVarchar" => EncryptedDBField::class,
         "MyJson" => EncryptedDBJson::class,
+        "MyEncryptedJson" => EncryptedDBJson::class . "(['map' => '7551830f{\"fields\":{\"$6e616d65\":\"string\",\"$616374697665\":\"bool\",\"$616765\":\"int\"}}'])",
     ];
 
     private static $has_one = [
