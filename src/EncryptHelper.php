@@ -3,6 +3,7 @@
 namespace LeKoala\Encrypt;
 
 use Exception;
+use SilverStripe\ORM\DB;
 use InvalidArgumentException;
 use SilverStripe\Assets\File;
 use ParagonIE\ConstantTime\Hex;
@@ -12,6 +13,7 @@ use SilverStripe\Control\Director;
 use SilverStripe\Core\Environment;
 use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\FieldType\DBText;
+use ParagonIE\CipherSweet\JsonFieldMap;
 use ParagonIE\CipherSweet\EncryptedFile;
 use SilverStripe\ORM\FieldType\DBVarchar;
 use SilverStripe\Core\Config\Configurable;
@@ -24,7 +26,6 @@ use ParagonIE\CipherSweet\Contract\BackendInterface;
 use ParagonIE\CipherSweet\Planner\FieldIndexPlanner;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
 use ParagonIE\CipherSweet\Contract\KeyProviderInterface;
-use SilverStripe\ORM\DB;
 
 /**
  * @link https://ciphersweet.paragonie.com/php
@@ -491,6 +492,36 @@ class EncryptHelper
     {
         $prefix = substr($value, 0, 5);
         return in_array($prefix, ["brng:", "nacl:", "fips:"]);
+    }
+
+    /**
+     * Check if a json value is encrypted
+     *
+     * @param string|array $value
+     * @return boolean
+     */
+    public static function isJsonEncrypted($value)
+    {
+        if (is_string($value)) {
+            $value = json_decode($value, JSON_OBJECT_AS_ARRAY);
+        }
+        // If any top level value is encrypted
+        foreach ($value as $v) {
+            if (self::isEncrypted($v)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Convert map to a suitable DB field definition
+     * @param JsonFieldMap $map
+     * @return string
+     */
+    public static function convertJsonMapToDefinition($map)
+    {
+        return str_replace("\"", "\\\"", (string)$map);
     }
 
     /**

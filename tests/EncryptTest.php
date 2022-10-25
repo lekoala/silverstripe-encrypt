@@ -908,7 +908,8 @@ class EncryptTest extends SapphireTest
             ->addBooleanField('active')
             ->addIntegerField('age');
 
-        // d(str_replace("\"", "\\\"", (string)$map));
+        $definition = EncryptHelper::convertJsonMapToDefinition($map);
+        $this->assertIsString($definition);
 
         $encryptedJsonField = $field->getEncryptedJsonField();
 
@@ -919,7 +920,11 @@ class EncryptTest extends SapphireTest
             'not_encrypted' => "this is not encrypted"
         ];
 
-        $encryptedJsonData = $encryptedJsonField->encryptJson($data);
+        $aad = (string)$model->ID;
+        $encryptedJsonData = $encryptedJsonField->encryptJson($data, $aad);
+
+        $this->assertFalse(EncryptHelper::isJsonEncrypted($data));
+        $this->assertTrue(EncryptHelper::isJsonEncrypted($encryptedJsonData));
 
         $decoded = json_decode($encryptedJsonData, JSON_OBJECT_AS_ARRAY);
 
@@ -933,8 +938,17 @@ class EncryptTest extends SapphireTest
 
         $dbData = DB::query("SELECT MyEncryptedJson FROM EncryptedModel WHERE ID = " . $model->ID)->value();
         $decodedDbData = json_decode($dbData, JSON_OBJECT_AS_ARRAY);
+
+        // data is properly stored with partially encrypted json
+        $this->assertNotNull($decodedDbData, "got $dbData");
         $this->assertEquals($data['not_encrypted'], $decodedDbData['not_encrypted']);
         $this->assertNotEquals($data['name'], $decodedDbData['name']);
+
+        $freshRecord = Test_EncryptedModel::get()->filter('ID', $model->ID)->first();
+        $freshValue = $freshRecord->dbObject('MyEncryptedJson')->toArray();
+
+        // It is decoded transparently
+        $this->assertEquals($data, $freshValue);
     }
 
     public function testFashHash()

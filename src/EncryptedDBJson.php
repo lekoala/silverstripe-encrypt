@@ -138,23 +138,25 @@ class EncryptedDBJson extends EncryptedDBText
      */
     public function setValue($value, $record = null, $markChanged = true)
     {
-        // Return early if we keep encrypted value in memory
-        if (!EncryptHelper::getAutomaticDecryption()) {
-            $this->value = $value;
-            return $this;
-        }
+        $this->setEncryptionAad($record);
 
+        // Not supported, we need decrypted values for methods to work properly
+        // Return early if we keep encrypted value in memory
+        // if (!EncryptHelper::getAutomaticDecryption()) {
+        //     $this->value = $value;
+        //     return $this;
+        // }
+
+        // Decrypt first if needed
         if ($this->getJsonMap() && $value && is_string($value)) {
-            $this->value = $this->getEncryptedJsonField()->decryptJson($value);
-            return $this;
-        }
-        if (is_array($value)) {
-            if ($this->getJsonMap()) {
+            if (EncryptHelper::isJsonEncrypted($value)) {
                 $aad = $this->encryptionAad;
-                $value = $this->getEncryptedJsonField()->encryptJson($value, $aad);
-            } else {
-                $value = json_encode($value);
+                $value = json_encode($this->getEncryptedJsonField()->decryptJson($value, $aad));
             }
+        }
+        // Internally, we use a string
+        if (is_array($value)) {
+            $value = json_encode($value);
         }
 
         return parent::setValue($value, $record, $markChanged);
@@ -165,11 +167,15 @@ class EncryptedDBJson extends EncryptedDBText
      */
     public function prepValueForDB($value)
     {
+        // We need an array to encrypt
+        if ($this->getJsonMap() && $value && is_string($value)) {
+            $value = $this->toArray();
+        }
         if (is_array($value)) {
             if ($this->getJsonMap()) {
                 $aad = $this->encryptionAad;
                 $value = $this->getEncryptedJsonField()->encryptJson($value, $aad);
-                return $value;
+                return $value; // return early
             } else {
                 $value = json_encode($value);
             }

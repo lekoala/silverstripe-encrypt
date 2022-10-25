@@ -135,9 +135,32 @@ This module provides three fields without blind indexes (if you need a blind ind
 
 These fields work exactly like their regular counterpart, except the data is encrypted.
 
-There is also one extra field:
+# JSON data type
 
-- EncryptedDBJson: this one helps storing encrypted serialized data
+With EncryptedDBJson you can store json data. By default, it will encrypt the whole json representation but
+that will prevent using modern db engines features to access specific keys.
+
+Instead, you can encrypt each part of the json data like so:
+
+```php
+// create definition somewhere...
+$map = (new JsonFieldMap())
+    ->addTextField('name')
+    ->addBooleanField('active')
+    ->addIntegerField('age');
+
+$definition = EncryptHelper::convertJsonMapToDefinition($map);
+
+// in your models...
+private static $db = [
+    "MyEncryptedJson" => EncryptedDBJson::class . "(['map' => '7551830f{\"fields\":{\"$6e616d65\":\"string\",\"$616374697665\":\"bool\",\"$616765\":\"int\"}}'])",
+];
+```
+
+The map needs to be stored in the field definition under the map option as a string representation. This can be created
+using `EncryptHelper::convertJsonMapToDefinition`.
+
+NOTE: unspecified keys will be left unencrypted.
 
 # Searching for data
 
