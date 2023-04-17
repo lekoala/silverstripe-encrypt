@@ -10,6 +10,8 @@ use SilverStripe\ORM\Filters\SearchFilter;
 
 /**
  * A filter that helps searching against a full blind index
+ * This can return false positive and is NOT recommended
+ * @deprecated
  */
 class EncryptedSearchFilter extends SearchFilter
 {

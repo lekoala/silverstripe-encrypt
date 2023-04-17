@@ -125,6 +125,9 @@ LeKoala\Encrypt\EncryptHelper:
 This is a global settings. Fast hashes are NOT the same as slow hashes so beware if you have existing data, you need
 to migrate it before. You can use `EncryptHelper::convertHashType` to help you along if needed.
 
+NOTE: from what I can see, fast hashes have more likelyhood to be the same for different values
+Make sure to use `getByBlindIndex` method
+
 # Simple field types
 
 This module provides three fields without blind indexes (if you need a blind index, see next point):
@@ -191,13 +194,7 @@ $record = MyModel::getByBlindIndex("MyEncryptedField", $value);
 $list = MyModel::getAllByBlindIndex("MyEncryptedField", $value);
 ```
 
-Or use search filter
-
-```php
-$record = MyModel::get()->filter('MyEncryptedField:Encrypted', $searchValue)->first();
-```
-
-NOTE: the search filter can return false positives, the `getByBlindIndex` method is preferred if you want one record.
+We cannot use a regular search filter because of the false positive.
 
 It is highly recommended to set indexes on your fields that use blind indexes. The convention is as follows:
 {Name}BlindIndex and {Name}LastFourBlindIndex
@@ -301,7 +298,7 @@ You can disable aad by setting this to an empty string.
 
 # Compatibility
 
-Tested with 4.6 to 4.8 but should work with 4.4+
+Tested with 4.6 to 4.12 but should work with 4.4+
 
 # Maintainer
 
