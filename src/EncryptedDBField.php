@@ -384,7 +384,7 @@ class EncryptedDBField extends DBComposite
         // $dataObject->setField($this->getName(), $this->value);
 
         // Encrypt value
-        $key = $this->getName() . 'Value';
+        $key = $this->getName() . self::VALUE_SUFFIX;
         $dataObject->setField($key, $encryptedValue);
 
         // Build blind indexes
@@ -399,7 +399,7 @@ class EncryptedDBField extends DBComposite
      */
     public function scaffoldFormField($title = null, $params = null)
     {
-        $field = TextField::create($this->name);
+        $field = TextField::create($this->getName() . self::VALUE_SUFFIX);
         return $field;
     }
 

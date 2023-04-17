@@ -125,9 +125,6 @@ LeKoala\Encrypt\EncryptHelper:
 This is a global settings. Fast hashes are NOT the same as slow hashes so beware if you have existing data, you need
 to migrate it before. You can use `EncryptHelper::convertHashType` to help you along if needed.
 
-NOTE: from what I can see, fast hashes have more likelyhood to be the same for different values
-Make sure to use `getByBlindIndex` method
-
 # Simple field types
 
 This module provides three fields without blind indexes (if you need a blind index, see next point):

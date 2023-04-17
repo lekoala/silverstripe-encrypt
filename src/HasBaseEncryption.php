@@ -76,6 +76,9 @@ trait HasBaseEncryption
      */
     protected function decryptValue($value)
     {
+        if (!$value) {
+            return $value;
+        }
         $decrypted = null;
         $aad = $this->encryptionAad;
         try {

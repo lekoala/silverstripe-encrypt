@@ -157,9 +157,9 @@ trait HasEncryptedFields
             $encryptedField = $this->dbObject($field)->getEncryptedField($engine);
             $blindIndexes = $encryptedField->getBlindIndexObjects();
             if (count($blindIndexes)) {
-                $encryptedRow->addTextField($field . "Value", $aadSource);
+                $encryptedRow->addTextField($field . EncryptedDBField::VALUE_SUFFIX, $aadSource);
                 foreach ($encryptedField->getBlindIndexObjects() as $blindIndex) {
-                    $encryptedRow->addBlindIndex($field . "Value", $blindIndex);
+                    $encryptedRow->addBlindIndex($field . EncryptedDBField::VALUE_SUFFIX, $blindIndex);
                 }
             } else {
                 $encryptedRow->addTextField($field, $aadSource);
