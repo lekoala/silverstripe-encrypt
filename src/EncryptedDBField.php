@@ -399,7 +399,7 @@ class EncryptedDBField extends DBComposite
      */
     public function scaffoldFormField($title = null, $params = null)
     {
-        $field = TextField::create($this->getName() . self::VALUE_SUFFIX);
+        $field = TextField::create($this->getName());
         return $field;
     }
 
