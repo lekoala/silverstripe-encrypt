@@ -597,11 +597,16 @@ class EncryptHelper
 
         if (isset($fields[$field])) {
             $dbClass = $fields[$field];
-            self::$field_cache[$key] = strpos($dbClass, 'Encrypted') !== false;
+            self::$field_cache[$key] = self::isEncryptedDbClass($dbClass);
         } else {
             self::$field_cache[$key] = false;
         }
         return self::$field_cache[$key];
+    }
+
+    public static function isEncryptedDbClass($dbClass)
+    {
+        return strpos($dbClass, 'Encrypted') !== false;
     }
 
     /**

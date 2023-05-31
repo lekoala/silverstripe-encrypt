@@ -2,7 +2,6 @@
 
 namespace LeKoala\Encrypt;
 
-use Exception;
 use SodiumException;
 use SilverStripe\ORM\DataObject;
 use ParagonIE\CipherSweet\CipherSweet;
@@ -229,5 +228,26 @@ trait HasEncryptedFields
     public function hasEncryptedField($field)
     {
         return EncryptHelper::isEncryptedField(get_class($this), $field);
+    }
+
+    /**
+     * Rebind record value for aad
+     *
+     * It would be better to deal with this in writeToManipulation but it is not called
+     * for CompositeFields
+     *
+     * @return void
+     */
+    protected function resetFieldValues()
+    {
+        if (EncryptHelper::getAadSource() === "ID") {
+            $db = $this->config()->db;
+            foreach ($this->record as $k => $v) {
+                $dbClass = $db[$k] ?? null;
+                if ($dbClass && EncryptHelper::isEncryptedDbClass($dbClass)) {
+                    $this->dbObject($k)->setValue($v);
+                }
+            }
+        }
     }
 }

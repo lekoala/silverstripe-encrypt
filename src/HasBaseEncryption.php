@@ -20,6 +20,11 @@ trait HasBaseEncryption
     protected $encryptionAad = '';
 
     /**
+     * @var string
+     */
+    protected $previousEncryptionAad = '';
+
+    /**
      * @return Exception
      */
     public function getEncryptionException()
@@ -79,6 +84,9 @@ trait HasBaseEncryption
         if (!$value) {
             return $value;
         }
+        if (!EncryptHelper::isEncrypted($value)) {
+            return $value;
+        }
         $decrypted = null;
         $aad = $this->encryptionAad;
         try {
@@ -95,7 +103,17 @@ trait HasBaseEncryption
                 $decrypted = $value;
             }
         } catch (Exception $ex) {
-            $this->encryptionException = $ex;
+            // This is a temporary fix for records written with AAD enabled but saved improperly
+            // This is not needed if resetFieldValues is used
+            if ($ex->getMessage() == "Invalid ciphertext" && $aad) {
+                try {
+                    $decrypted = $this->getEncryptedField()->decryptValue($value, "0");
+                } catch (Exception $ex) {
+                    $this->encryptionException = $ex;
+                }
+            } else {
+                $this->encryptionException = $ex;
+            }
         }
         return $decrypted;
     }

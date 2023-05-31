@@ -288,6 +288,18 @@ and using legitimate app access to decrypt ciphertexts they wouldn't otherwise h
 This setting is controlled by `aad_source` parameter that takes by default the "ID" value.
 You can disable aad by setting this to an empty string.
 
+On first write, records get their ID. Therefore, you need to make sure that the ID is set on the encrypted fields.
+This can be done like this. Some safety checks are also in place in case you don't do this.
+
+```php
+protected function writeBaseRecord($baseTable, $now)
+{
+    parent::writeBaseRecord($baseTable, $now);
+    // After base record is written, we have an ID and therefore AAD has changed
+    $this->resetFieldValues();
+}
+```
+
 # Todo
 
 - Figure out a way to encrypt the Email field for members

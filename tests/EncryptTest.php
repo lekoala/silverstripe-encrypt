@@ -199,6 +199,14 @@ class EncryptTest extends SapphireTest
     }
 
     /**
+     * @return Test_EncryptedModel
+     */
+    public function getNewTestModel()
+    {
+        return new Test_EncryptedModel();
+    }
+
+    /**
      * @return Member
      */
     public function getAdminMember()
@@ -872,6 +880,48 @@ class EncryptTest extends SapphireTest
 
         // Cleanup
         EncryptHelper::clearCipherSweet();
+    }
+
+    /**
+     * @group aad
+     */
+    public function testAad()
+    {
+        $new = $this->getNewTestModel();
+
+        // Without AAD, it should work fine
+        EncryptHelper::setAadSource("");
+
+        $new->MyText = "TEST";
+        $new->MyIndexedVarchar = "TEST";
+        $new->write();
+
+        $this->assertEquals("TEST", $new->dbObject("MyText")->getValue());
+        $this->assertEquals("TEST", $new->dbObject("MyIndexedVarchar")->getValue());
+
+        // With AAD, it should work fine as well
+        // var_dump("*** CREATE ***");
+        $new = $this->getNewTestModel();
+
+        EncryptHelper::setAadSource("ID");
+
+        // var_dump("*** ASSIGN ***");
+        $new->MyText = "TEST";
+        $new->MyIndexedVarchar = "TEST";
+
+        // var_dump("*** WRITE ***");
+        $new->write();
+        // On first write, we need to make sure we pick up the ID from the writeBaseRecord operation
+
+        // The second write should NOT be needed
+        // $new->MyIndexedVarchar = "TEST";
+        // $new->write();
+
+        $dbObj = $new->dbObject("MyIndexedVarchar");
+
+        $this->assertEquals("TEST", $new->dbObject("MyText")->getValue());
+        $this->assertEquals("TEST", $dbObj->getValue());
+        $this->assertNull($dbObj->getEncryptionException());
     }
 
     public function testJsonField()

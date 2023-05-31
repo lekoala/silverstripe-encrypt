@@ -15,6 +15,7 @@ use LeKoala\Encrypt\HasEncryptedFields;
 use ParagonIE\CipherSweet\JsonFieldMap;
 use LeKoala\Encrypt\EncryptedDBHTMLText;
 use LeKoala\Encrypt\EncryptedNumberField;
+use LeKoala\Encrypt\EncryptHelper;
 
 /**
  * A test model for our encryption
@@ -60,6 +61,13 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         'MyNumberBlindIndex' => true,
         'MyNumberLastFourBlindIndex' => true,
     ];
+
+    protected function writeBaseRecord($baseTable, $now)
+    {
+        parent::writeBaseRecord($baseTable, $now);
+        // After base record is written, we have an ID and therefore AAD has changed
+        $this->resetFieldValues();
+    }
 
     public function getField($field)
     {
