@@ -299,7 +299,8 @@ class EncryptedDBField extends DBComposite
 
         // Set the table name if it was not set earlier
         if (!$this->tableName && $record) {
-            $this->tableName = DataObject::getSchema()->tableName(get_class($record));
+            $class = is_array($record) && isset($record['ClassName']) ? $record['ClassName'] : get_class($record);
+            $this->tableName = DataObject::getSchema()->tableName($class);
             if (!$this->tableName) {
                 throw new Exception("Could not get table name from record from " . gettype($record));
             }
@@ -341,7 +342,7 @@ class EncryptedDBField extends DBComposite
      */
     public function exists()
     {
-        return strlen($this->value) > 0;
+        return strlen($this->value ?? '') > 0;
     }
 
     /**
