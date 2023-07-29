@@ -81,7 +81,7 @@ trait HasEncryptedFields
 
         $rotator = new RowRotator($oldRow, $newRow);
         $query = new SQLSelect("*", $tableName, [$columnIdentifier => $this->ID]);
-        $ciphertext = $query->execute()->first();
+        $ciphertext = $query->execute()->record();
         // not needed anymore since 3.0.1
         // $ciphertext = EncryptHelper::removeNulls($ciphertext);
         if ($rotator->needsReEncrypt($ciphertext)) {
@@ -110,7 +110,7 @@ trait HasEncryptedFields
             $encryptedFields[] = EncryptHelper::getAadSource();
         }
         $query = new SQLSelect($encryptedFields, $tableName, [$columnIdentifier => $this->ID]);
-        $ciphertext = $query->execute()->first();
+        $ciphertext = $query->execute()->record();
         $ciphertext = array_filter($ciphertext);
 
         // Get only what we need

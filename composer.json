@@ -1,58 +1,60 @@
 {
-  "name": "lekoala/silverstripe-encrypt",
-  "description": "Encrypted database fields and files for SilverStripe using CipherSweet",
-  "type": "silverstripe-vendormodule",
-  "keywords": [
-    "silverstripe",
-    "encrypt",
-    "ciphersweet",
-    "security",
-    "decrypt",
-    "module"
-  ],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "LeKoala",
-      "email": "thomas@lekoala.be"
-    }
-  ],
-  "require": {
-    "php": "^7.4 || ^8.0",
-    "silverstripe/framework": "^4.4",
-    "silverstripe/assets": "^1.6",
-    "silverstripe/versioned": "^1.6",
-    "paragonie/ciphersweet": "^3.2"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^9.5",
-    "squizlabs/php_codesniffer": "^3.5",
-    "silverstripe/admin": "^1.4"
-  },
-  "autoload": {
-    "psr-4": {
-      "LeKoala\\Encrypt\\": "src/",
-      "LeKoala\\Encrypt\\Test\\": "tests/"
-    }
-  },
-  "extra": {
-    "installer-name": "encrypt"
-  },
-  "config": {
-    "allow-plugins": {
-      "composer/installers": true,
-      "silverstripe/recipe-plugin": true,
-      "silverstripe/vendor-plugin": true
-    }
-  },
-  "support": {
-    "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
-  },
-  "scripts": {
-    "lint": "phpcs src/ tests/",
-    "lint-clean": "phpcbf src/ tests/",
-    "test": "phpunit -v"
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true
+    "name": "lekoala/silverstripe-encrypt",
+    "description": "Encrypted database fields and files for SilverStripe using CipherSweet",
+    "type": "silverstripe-vendormodule",
+    "keywords": [
+        "silverstripe",
+        "encrypt",
+        "ciphersweet",
+        "security",
+        "decrypt",
+        "module"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LeKoala",
+            "email": "thomas@lekoala.be"
+        }
+    ],
+    "require": {
+        "php": "^7.4 || ^8",
+        "silverstripe/recipe-plugin": "^1 || ^2",
+        "silverstripe/vendor-plugin": "^1 || ^2",
+        "silverstripe/framework": "^4.6 || ^5",
+        "silverstripe/assets": "^1.6 || ^2",
+        "silverstripe/versioned": "^1.6 || ^2",
+        "paragonie/ciphersweet": "^3.2,<4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "squizlabs/php_codesniffer": "^3.5",
+        "silverstripe/admin": "^1.6 || ^2"
+    },
+    "autoload": {
+        "psr-4": {
+            "LeKoala\\Encrypt\\": "src/",
+            "LeKoala\\Encrypt\\Test\\": "tests/"
+        }
+    },
+    "extra": {
+        "installer-name": "encrypt"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/recipe-plugin": true,
+            "silverstripe/vendor-plugin": true
+        }
+    },
+    "support": {
+        "issues": "https://github.com/lekoala/silverstripe-encrypt/issues"
+    },
+    "scripts": {
+        "lint": "phpcs src/ tests/",
+        "lint-clean": "phpcbf src/ tests/",
+        "test": "phpunit -v"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

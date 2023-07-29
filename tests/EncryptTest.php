@@ -279,7 +279,7 @@ class EncryptTest extends SapphireTest
         $tableName = DataObject::getSchema()->tableName($class);
         $columnIdentifier = DataObject::getSchema()->sqlColumnForField($class, 'ID');
         $sql = new SQLSelect('*', [$tableName], [$columnIdentifier => $id]);
-        $dbRecord = $sql->firstRow()->execute()->first();
+        $dbRecord = $sql->firstRow()->execute()->record();
         return $dbRecord;
     }
 

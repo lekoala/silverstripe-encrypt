@@ -367,9 +367,6 @@ class EncryptHelper
      */
     public static function getRecommendedBackend()
     {
-        if (version_compare(phpversion(), '7.2', '<')) {
-            return new FIPSCrypto();
-        }
         return new BoringCrypto();
     }
 
