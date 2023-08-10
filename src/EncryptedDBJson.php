@@ -2,7 +2,9 @@
 
 namespace LeKoala\Encrypt;
 
+use SilverStripe\ORM\DataObject;
 use SilverStripe\Forms\HiddenField;
+use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\JsonFieldMap;
 use ParagonIE\CipherSweet\EncryptedJsonField;
 
