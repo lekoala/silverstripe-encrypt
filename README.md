@@ -1,7 +1,6 @@
 # SilverStripe Encrypt module
 
 ![Build Status](https://github.com/lekoala/silverstripe-encrypt/actions/workflows/ci.yml/badge.svg)
-[![Build Status](https://travis-ci.com/lekoala/silverstripe-encrypt.svg?branch=master)](https://travis-ci.com/lekoala/silverstripe-encrypt/)
 [![scrutinizer](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/)
 [![Code coverage](https://codecov.io/gh/lekoala/silverstripe-encrypt/branch/master/graph/badge.svg)](https://codecov.io/gh/lekoala/silverstripe-encrypt)
 
