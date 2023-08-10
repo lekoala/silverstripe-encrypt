@@ -8,6 +8,7 @@ use SilverStripe\Assets\File;
 /**
  * @mixin \LeKoala\Encrypt\EncryptedDBFile
  * @property bool $Encrypted
+ * @method bool encryptFileIfNeeded()
  */
 class EncryptedFile extends File
 {

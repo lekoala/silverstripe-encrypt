@@ -14,7 +14,7 @@ use SilverStripe\Core\Environment;
 use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\FieldType\DBText;
 use ParagonIE\CipherSweet\JsonFieldMap;
-use ParagonIE\CipherSweet\EncryptedFile;
+use ParagonIE\CipherSweet\EncryptedFile as CipherSweetEncryptedFile;
 use SilverStripe\ORM\FieldType\DBVarchar;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\FieldType\DBHTMLText;
@@ -76,7 +76,7 @@ class EncryptHelper
     protected static $ciphersweet;
 
     /**
-     * @var EncryptedFile
+     * @var CipherSweetEncryptedFile
      */
     protected static $encryptedFile;
 
@@ -422,12 +422,12 @@ class EncryptHelper
     }
 
     /**
-     * @return EncryptedFile
+     * @return CipherSweetEncryptedFile
      */
     public static function getEncryptedFileInstance()
     {
         if (!self::$encryptedFile) {
-            self::$encryptedFile = new EncryptedFile(self::getCipherSweet());
+            self::$encryptedFile = new CipherSweetEncryptedFile(self::getCipherSweet());
         }
         return self::$encryptedFile;
     }

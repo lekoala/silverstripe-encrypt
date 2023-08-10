@@ -5,6 +5,7 @@ namespace LeKoala\Encrypt;
 use SilverStripe\ORM\DB;
 use InvalidArgumentException;
 use SilverStripe\ORM\DataQuery;
+use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedField;
 use SilverStripe\ORM\Filters\SearchFilter;
 

@@ -3,6 +3,7 @@
 namespace LeKoala\Encrypt;
 
 use SodiumException;
+use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
 use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\DataObjectSchema;
@@ -36,7 +37,7 @@ trait HasEncryptedFields
      *
      * @param string $field
      * @param string $value
-     * @return $this
+     * @return DataObject|bool
      */
     public static function getByBlindIndex($field, $value)
     {

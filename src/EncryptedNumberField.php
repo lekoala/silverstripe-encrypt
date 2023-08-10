@@ -3,6 +3,7 @@
 namespace LeKoala\Encrypt;
 
 use ParagonIE\CipherSweet\BlindIndex;
+use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedField;
 use ParagonIE\CipherSweet\Transformation\LastFourDigits;
 
