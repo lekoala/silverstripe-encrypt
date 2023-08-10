@@ -649,7 +649,7 @@ class EncryptTest extends SapphireTest
         // $this->assertNotEquals($beforeValue->getValue(), $afterValue->getValue(), "It should not have the same value internally anymore");
         $this->assertTrue($model->isChanged('MyIndexedVarchar'), "Field is not properly marked as changed, only have : " . $changed);
         $this->assertEquals('new_value', $dbObj->getValue());
-        $this->assertNotEquals('new_value', $modelFields['MyIndexedVarcharValue'], "Unencrypted value is not set on value field");
+        $this->assertNotEquals('new_value', $modelFields['MyIndexedVarcharValue'] ?? "", "Unencrypted value is not set on value field");
 
         // Somehow this is not working on travis? composite fields don't save encrypted data although it works locally
         $this->assertNotEquals("some_searchable_value", $dbRecord['MyIndexedVarcharValue'], "Data is not encrypted in the database");

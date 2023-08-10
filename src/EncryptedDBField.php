@@ -144,6 +144,7 @@ class EncryptedDBField extends DBComposite
     /**
      * This is not called anymore, we rely on saveInto for now
      * @link https://github.com/silverstripe/silverstripe-framework/issues/8800
+     * @link https://github.com/silverstripe/silverstripe-framework/pull/10913
      * @param array $manipulation
      * @return void
      */
