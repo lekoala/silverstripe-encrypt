@@ -83,7 +83,7 @@ class EncryptedDBField extends DBComposite
         if (array_key_exists('index_size', $this->options)) {
             return $this->options['index_size'];
         }
-        if ($default) {
+        if ($default !== null) {
             return $default;
         }
         return self::LARGE_INDEX_SIZE;
@@ -199,6 +199,9 @@ class EncryptedDBField extends DBComposite
         }
         $field = $this->getEncryptedField();
         $index = $field->getBlindIndex($val, $this->name . $indexSuffix);
+        if (is_array($index)) {
+            return $index['value'];
+        }
         return $index;
     }
 
@@ -244,7 +247,7 @@ class EncryptedDBField extends DBComposite
     /**
      * @param string $val The unencrypted value
      * @param string $indexSuffix The blind index. Defaults to full index
-     * @return DataObject
+     * @return DataObject|false
      */
     public function fetchRecord($val, $indexSuffix = null)
     {
