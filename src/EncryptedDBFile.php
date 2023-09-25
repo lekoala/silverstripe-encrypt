@@ -97,6 +97,9 @@ class EncryptedDBFile extends DataExtension
             ob_end_clean();
         }
         $stream = $this->owner->getStream();
+        if (!$stream) {
+            throw new Exception("File not found");
+        }
         if ($this->owner->Encrypted) {
             $encFile = EncryptHelper::getEncryptedFileInstance();
             $output = fopen('php://temp', 'w+b');
