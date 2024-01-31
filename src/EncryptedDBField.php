@@ -142,9 +142,9 @@ class EncryptedDBField extends DBComposite
             $fashHash = EncryptHelper::getFashHash();
         }
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
-        // fieldName needs to match exact db name for row rotator to work properly
 
-        $fieldName = $this->name;
+        // fieldName needs to match exact db name for row rotator to work properly
+        $fieldName = $this->name . self::VALUE_SUFFIX;
         $indexName = $this->name . self::INDEX_SUFFIX;
 
         $encryptedField = (new EncryptedField($engine, $this->tableName, $fieldName))

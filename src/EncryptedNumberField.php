@@ -72,8 +72,9 @@ class EncryptedNumberField extends EncryptedDBField
         }
         $lastFourIndexSize = $this->getLastFourIndexSize(self::SMALL_INDEX_SIZE);
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
+
         // fieldName needs to match exact db name for row rotator to work properly
-        $fieldName = $this->name . "Value";
+        $fieldName = $this->name . self::VALUE_SUFFIX;
         $indexName = $this->name . self::INDEX_SUFFIX;
         $shortIndexName = $this->name . "LastFourBlindIndex";
 
