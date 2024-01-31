@@ -73,9 +73,13 @@ class EncryptedNumberField extends EncryptedDBField
         $lastFourIndexSize = $this->getLastFourIndexSize(self::SMALL_INDEX_SIZE);
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
         // fieldName needs to match exact db name for row rotator to work properly
-        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . "Value"))
-            ->addBlindIndex(new BlindIndex($this->name . "LastFourBlindIndex", [new LastFourDigits()], $lastFourIndexSize, $fashHash))
-            ->addBlindIndex(new BlindIndex($this->name . "BlindIndex", [], $indexSize, $fashHash));
+        $fieldName = $this->name . "Value";
+        $indexName = $this->name . self::INDEX_SUFFIX;
+        $shortIndexName = $this->name . "LastFourBlindIndex";
+
+        $encryptedField = (new EncryptedField($engine, $this->tableName, $fieldName))
+            ->addBlindIndex(new BlindIndex($shortIndexName, [new LastFourDigits()], $lastFourIndexSize, $fashHash))
+            ->addBlindIndex(new BlindIndex($indexName, [], $indexSize, $fashHash));
         return $encryptedField;
     }
 

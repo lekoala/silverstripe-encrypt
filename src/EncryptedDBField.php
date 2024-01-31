@@ -143,8 +143,12 @@ class EncryptedDBField extends DBComposite
         }
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
         // fieldName needs to match exact db name for row rotator to work properly
-        $encryptedField = (new EncryptedField($engine, $this->tableName, $this->name . self::VALUE_SUFFIX))
-            ->addBlindIndex(new BlindIndex($this->name . self::INDEX_SUFFIX, [], $indexSize, $fashHash));
+
+        $fieldName = $this->name;
+        $indexName = $this->name . self::INDEX_SUFFIX;
+
+        $encryptedField = (new EncryptedField($engine, $this->tableName, $fieldName))
+            ->addBlindIndex(new BlindIndex($indexName, [], $indexSize, $fashHash));
         return $encryptedField;
     }
 
