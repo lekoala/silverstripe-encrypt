@@ -3,6 +3,7 @@ Name: encrypt
 ---
 LeKoala\Encrypt\EncryptHelper:
   fasthash: false
+  append_suffix_to_name: true
 SilverStripe\Assets\File:
   extensions:
     - LeKoala\Encrypt\EncryptedDBFile

@@ -2,9 +2,10 @@
 
 namespace LeKoala\Encrypt;
 
+use SilverStripe\Security\Security;
+use ParagonIE\CipherSweet\Contract\KeyProviderInterface;
 use ParagonIE\CipherSweet\Exception\CipherSweetException;
 use ParagonIE\CipherSweet\KeyProvider\MultiTenantProvider;
-use SilverStripe\Security\Security;
 
 /**
  * This class provides a multi tenant key provider
@@ -107,9 +108,9 @@ class MemberKeyProvider extends MultiTenantProvider
      *
      * This is not super useful since we mostly go through the ORM
      *
-     * @param array $row
+     * @param array<string,mixed> $row
      * @param string $tableName
-     * @return string
+     * @return string|int|null
      *
      * @throws CipherSweetException
      */
@@ -127,9 +128,9 @@ class MemberKeyProvider extends MultiTenantProvider
      * It's not really used in our case because we encrypt each fields
      * one by one anyway
      *
-     * @param array $row
+     * @param array<string,mixed> $row
      * @param string $tableName
-     * @return array
+     * @return array<string,mixed>
      */
     public function injectTenantMetadata(array $row, $tableName)
     {

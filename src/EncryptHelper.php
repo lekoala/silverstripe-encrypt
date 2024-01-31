@@ -71,17 +71,17 @@ class EncryptHelper
     private static $aad_source = "ID";
 
     /**
-     * @var CipherSweet
+     * @var ?CipherSweet
      */
-    protected static $ciphersweet;
+    protected static $ciphersweet = null;
 
     /**
-     * @var CipherSweetEncryptedFile
+     * @var ?CipherSweetEncryptedFile
      */
-    protected static $encryptedFile;
+    protected static $encryptedFile = null;
 
     /**
-     * @var array
+     * @var array<string,bool>
      */
     protected static $field_cache = [];
 
@@ -115,7 +115,7 @@ class EncryptHelper
     }
 
     /**
-     * @param bool $setAutomaticRotation
+     * @param bool $automaticRotation
      * @return void
      */
     public static function setAutomaticRotation($automaticRotation)
@@ -176,7 +176,7 @@ class EncryptHelper
 
     /**
      * @link https://ciphersweet.paragonie.com/php/blind-index-planning
-     * @return array
+     * @return array<string,int>
      */
     public static function planIndexSizes()
     {
@@ -192,8 +192,8 @@ class EncryptHelper
     }
 
     /**
-     * @param string $dataObject
-     * @return array
+     * @param string $class
+     * @return array<string,mixed>
      */
     public static function planIndexSizesForClass($class)
     {
@@ -268,8 +268,8 @@ class EncryptHelper
     /**
      * @deprecated
      * @link https://github.com/paragonie/ciphersweet/issues/62
-     * @param array $ciphertext
-     * @return array
+     * @param array<mixed> $ciphertext
+     * @return array<mixed>
      */
     public static function removeNulls($ciphertext)
     {
@@ -293,7 +293,7 @@ class EncryptHelper
     }
 
     /**
-     * @return array Two 64 chars strings
+     * @return array{"public_key": string, "private_key": string} Two 64 chars strings
      */
     public static function generateKeyPair()
     {
@@ -391,7 +391,7 @@ class EncryptHelper
     }
 
     /**
-     * @param BackendInterface $backend
+     * @param string $encryption
      * @param string $key
      * @return CipherSweet
      */
@@ -426,7 +426,7 @@ class EncryptHelper
      */
     public static function getEncryptedFileInstance()
     {
-        if (!self::$encryptedFile) {
+        if (self::$encryptedFile === null) {
             self::$encryptedFile = new CipherSweetEncryptedFile(self::getCipherSweet());
         }
         return self::$encryptedFile;
@@ -447,7 +447,7 @@ class EncryptHelper
      */
     public static function getCipherSweet($provider = null)
     {
-        if (self::$ciphersweet) {
+        if (self::$ciphersweet !== null) {
             return self::$ciphersweet;
         }
         if ($provider === null) {
@@ -494,13 +494,13 @@ class EncryptHelper
     /**
      * Check if a json value is encrypted
      *
-     * @param string|array $value
+     * @param string|array<mixed> $value
      * @return boolean
      */
     public static function isJsonEncrypted($value)
     {
         if (is_string($value)) {
-            $value = json_decode($value, JSON_OBJECT_AS_ARRAY);
+            $value = json_decode($value, true);
         }
         // If any top level value is encrypted
         foreach ($value as $v) {
@@ -559,7 +559,7 @@ class EncryptHelper
 
     /**
      * @param string $value
-     * @return string
+     * @return ?string
      */
     public static function getEncryption($value)
     {
@@ -572,7 +572,7 @@ class EncryptHelper
         if (self::isFips($value)) {
             return self::FIPS;
         }
-        return false;
+        return null;
     }
 
     /**
@@ -601,6 +601,10 @@ class EncryptHelper
         return self::$field_cache[$key];
     }
 
+    /**
+     * @param string $dbClass
+     * @return boolean
+     */
     public static function isEncryptedDbClass($dbClass)
     {
         return strpos($dbClass, 'Encrypted') !== false;
@@ -608,6 +612,7 @@ class EncryptHelper
 
     /**
      * Filters parameters from database class config
+     * @param string $dbClass
      * @return string
      */
     protected static function filterDbClass($dbClass)
@@ -622,7 +627,7 @@ class EncryptHelper
     /**
      * @param string $class
      * @param bool $dbFields Return actual database field value instead of field name
-     * @return array An associative array with the name of the field as key and the class as value
+     * @return array<int|string,string> An associative array with the name of the field as key and the class as value
      */
     public static function getEncryptedFields($class, $dbFields = false)
     {
@@ -685,7 +690,7 @@ class EncryptHelper
     /**
      * Return a map of fields with their encrypted counterpart
      *
-     * @return array
+     * @return array<string,string>
      */
     public static function mapEncryptionDBField()
     {
@@ -701,7 +706,7 @@ class EncryptHelper
      *
      * @link https://ciphersweet.paragonie.com/php/blind-index-planning
      * @link https://ciphersweet.paragonie.com/security
-     * @param array $indexes an array of L (output size) / K (domaine size) pairs
+     * @param array<mixed> $indexes an array of L (output size) / K (domaine size) pairs
      * @param int $R the number of encrypted records that use this blind index
      * @return float
      */
@@ -718,7 +723,7 @@ class EncryptHelper
     /**
      * Alias of sendDecryptedFile
      * @deprecated
-     * @param File|EncryptedDBFile $file
+     * @param File $file
      * @return void
      */
     public static function sendEncryptedFile(File $file)
@@ -729,7 +734,7 @@ class EncryptHelper
     /**
      * Send a decrypted file
      *
-     * @param File|EncryptedDBFile $file
+     * @param File $file
      * @param string $fileName
      * @param string $mimeType
      * @return void
@@ -746,6 +751,7 @@ class EncryptHelper
         header('Content-type: ' . $mimeType);
         header('Pragma: no-cache');
         header('Expires: 0');
+        /** @var EncryptedDBFile $file */
         $file->sendDecryptedFile();
     }
 }

@@ -3,16 +3,20 @@
 namespace LeKoala\Encrypt;
 
 use SilverStripe\Assets\File;
+use SilverStripe\Security\Security;
 use SilverStripe\Control\Controller;
 use SilverStripe\Security\Permission;
-use SilverStripe\Security\Security;
 use SilverStripe\Versioned\Versioned;
+use SilverStripe\Control\HTTPResponse;
 
 /**
  * Easily decrypt your files
  */
 class DecryptController extends Controller
 {
+    /**
+     * @return HTTPResponse|void
+     */
     public function index()
     {
         $request = $this->getRequest();
@@ -25,9 +29,10 @@ class DecryptController extends Controller
 
         $sendDraft = $this->config()->send_draft;
 
-        /** @var File|EncryptedDBFile $File  */
+        /** @var File|null $File */
         $File = File::get()->byID($ID);
         if (!$File && $sendDraft) {
+            /** @var File|null $File */
             $File = Versioned::get_one_by_stage(File::class, Versioned::DRAFT, "ID = " . $ID);
         }
         if (!$File) {

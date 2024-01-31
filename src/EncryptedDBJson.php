@@ -22,7 +22,7 @@ class EncryptedDBJson extends EncryptedDBText
 {
 
     /**
-     * @return string
+     * @return ?string
      */
     public function getJsonMap()
     {
@@ -47,7 +47,7 @@ class EncryptedDBJson extends EncryptedDBText
      * Json data is not easily displayed
      *
      * @param string $title
-     * @param string $params
+     * @param array<mixed> $params
      * @return HiddenField
      */
     public function scaffoldFormField($title = null, $params = null)
@@ -67,18 +67,18 @@ class EncryptedDBJson extends EncryptedDBText
     }
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
     public function decodeArray()
     {
         if (!$this->value) {
             return [];
         }
-        return json_decode($this->value, JSON_OBJECT_AS_ARRAY);
+        return json_decode($this->value, true);
     }
 
     /**
-     * @return array
+     * @return array<string,mixed>
      */
     public function toArray()
     {
@@ -90,11 +90,20 @@ class EncryptedDBJson extends EncryptedDBText
      */
     public function pretty()
     {
-        return json_encode(json_decode($this->value), JSON_PRETTY_PRINT);
+        $decoded = json_decode($this->value);
+        if (!$decoded) {
+            return json_last_error_msg();
+        }
+        $result = json_encode($decoded, JSON_PRETTY_PRINT);
+        if (!$result) {
+            return json_last_error_msg();
+        }
+        return $result;
     }
 
     /**
      * @inheritDoc
+     * @return void
      */
     public function saveInto($dataObject)
     {
@@ -108,7 +117,7 @@ class EncryptedDBJson extends EncryptedDBText
      * Add a value
      *
      * @link https://stackoverflow.com/questions/7851590/array-set-value-using-dot-notation
-     * @param string|array $key
+     * @param string|array<string> $key
      * @param string $value
      * @return $this
      */
@@ -180,6 +189,9 @@ class EncryptedDBJson extends EncryptedDBText
                 return $value; // return early
             } else {
                 $value = json_encode($value);
+                if ($value === false) {
+                    $value = '';
+                }
             }
         }
         return parent::prepValueForDB($value);

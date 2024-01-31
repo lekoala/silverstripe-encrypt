@@ -19,7 +19,7 @@ use ParagonIE\CipherSweet\Transformation\LastFourDigits;
 class EncryptedNumberField extends EncryptedDBField
 {
     /**
-     * @param array
+     * @var array<string,string>
      */
     private static $composite_db = array(
         "Value" => "Varchar(191)",
@@ -48,6 +48,8 @@ class EncryptedNumberField extends EncryptedDBField
     }
 
     /**
+     * @param mixed $value
+     * @param bool $markChanged
      * @return $this
      */
     public function setLastFourBlindIndexField($value, $markChanged = true)

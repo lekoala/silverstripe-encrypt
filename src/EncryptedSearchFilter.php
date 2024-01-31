@@ -2,6 +2,7 @@
 
 namespace LeKoala\Encrypt;
 
+use Exception;
 use SilverStripe\ORM\DB;
 use InvalidArgumentException;
 use SilverStripe\ORM\DataQuery;
@@ -16,6 +17,10 @@ use SilverStripe\ORM\Filters\SearchFilter;
  */
 class EncryptedSearchFilter extends SearchFilter
 {
+    /**
+     * @param array<string> $modifiers
+     * @return void
+     */
     public function setModifiers(array $modifiers)
     {
         if (!empty($modifiers)) {
@@ -52,11 +57,19 @@ class EncryptedSearchFilter extends SearchFilter
     /**
      * Accessor for the current value to be filtered on.
      *
-     * @return string|array
+     * @return string
      */
     public function getEncryptedValue()
     {
-        return $this->getEncryptedField()->getBlindIndex($this->getValue(), $this->name . EncryptedDBField::INDEX_SUFFIX);
+        $plaintext = $this->getValue();
+        if (is_array($plaintext)) {
+            throw new Exception("Array value are not supported");
+        }
+        $value = $this->getEncryptedField()->getBlindIndex($plaintext, $this->name . EncryptedDBField::INDEX_SUFFIX);
+        if (is_array($value)) {
+            return $value['value'];
+        }
+        return $value;
     }
 
     /**
@@ -69,7 +82,7 @@ class EncryptedSearchFilter extends SearchFilter
         $this->model = $query->applyRelation($this->relation);
         $where = DB::get_conn()->comparisonClause(
             $this->getDbName(),
-            null,
+            '',
             true, // exact?
             false, // negate?
             $this->getCaseSensitive(),
@@ -89,14 +102,8 @@ class EncryptedSearchFilter extends SearchFilter
     {
         $this->model = $query->applyRelation($this->relation);
         $caseSensitive = $this->getCaseSensitive();
-        $values = $this->getEncryptedValue();
+        $values = [$this->getEncryptedValue()];
         $column = $this->getDbName();
-        // For queries using the default collation (no explicit case) we can use the WHERE .. IN .. syntax,
-        // providing simpler SQL than many WHERE .. OR .. fragments.
-        // If values is an empty array, fall back to 3.1 behaviour and use empty string comparison
-        if (empty($values)) {
-            $values = array('');
-        }
         $placeholders = DB::placeholders($values);
         return $query->where(array(
             "$column IN ($placeholders)" => $values
@@ -114,7 +121,7 @@ class EncryptedSearchFilter extends SearchFilter
         $column = $this->getDbName();
         $where = DB::get_conn()->comparisonClause(
             $column,
-            null,
+            '',
             true, // exact?
             true, // negate?
             $this->getCaseSensitive(),
@@ -134,15 +141,9 @@ class EncryptedSearchFilter extends SearchFilter
     {
         $this->model = $query->applyRelation($this->relation);
         $caseSensitive = $this->getCaseSensitive();
-        $values = $this->getEncryptedValue();
+        $values = [$this->getEncryptedValue()];
         $column = $this->getDbName();
         if ($caseSensitive === null) {
-            // For queries using the default collation (no explicit case) we can use the WHERE .. NOT IN .. syntax,
-            // providing simpler SQL than many WHERE .. AND .. fragments.
-            // If values is an empty array, fall back to 3.1 behaviour and use empty string comparison
-            if (empty($values)) {
-                $values = array('');
-            }
             $placeholders = DB::placeholders($values);
             return $query->where(array(
                 "$column NOT IN ($placeholders)" => $values
@@ -151,7 +152,7 @@ class EncryptedSearchFilter extends SearchFilter
             // Generate reusable comparison clause
             $comparisonClause = DB::get_conn()->comparisonClause(
                 $column,
-                null,
+                '',
                 true, // exact?
                 true, // negate?
                 $this->getCaseSensitive(),
@@ -166,6 +167,8 @@ class EncryptedSearchFilter extends SearchFilter
 
     public function isEmpty()
     {
-        return $this->getValue() === array() || $this->getValue() === null || $this->getValue() === '';
+        /** @var array<mixed>|string|null $v */
+        $v = $this->getValue();
+        return $v === array() || $v === null || $v === '';
     }
 }

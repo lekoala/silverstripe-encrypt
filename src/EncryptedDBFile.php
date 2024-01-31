@@ -16,7 +16,7 @@ use SilverStripe\Assets\Flysystem\FlysystemAssetStore;
  * Safe and encrypted content file
  * Also make sure that files are not public assets! => use htaccess
  * @property bool $Encrypted
- * @property File|EncryptedDBFile $owner
+ * @property File&EncryptedDBFile $owner
  */
 class EncryptedDBFile extends DataExtension
 {
@@ -25,12 +25,15 @@ class EncryptedDBFile extends DataExtension
      */
     protected static $encryptionEngine;
 
+    /**
+     * @var array<string,string>
+     */
     private static $db = [
         "Encrypted" => "Boolean",
     ];
 
     /**
-     * @return string
+     * @return string|bool
      */
     public function getDecryptionLink()
     {
@@ -103,6 +106,9 @@ class EncryptedDBFile extends DataExtension
         if ($this->owner->Encrypted) {
             $encFile = EncryptHelper::getEncryptedFileInstance();
             $output = fopen('php://temp', 'w+b');
+            if (!$output) {
+                throw new Exception("Failed to open output stream");
+            }
 
             // We need to decrypt stream
             if ($encFile->isStreamEncrypted($stream)) {
@@ -151,6 +157,9 @@ class EncryptedDBFile extends DataExtension
         if (!$isEncrypted) {
             // php://temp is not a file path, it's a pseudo protocol that always creates a new random temp file when used.
             $output = fopen('php://temp', 'wb');
+            if (!$output) {
+                throw new Exception("Failed to decrypt stream");
+            }
             $success =  $encFile->encryptStream($stream, $output);
             if (!$success) {
                 throw new Exception("Failed to encrypt stream");

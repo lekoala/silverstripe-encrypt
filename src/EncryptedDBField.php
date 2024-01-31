@@ -3,9 +3,12 @@
 namespace LeKoala\Encrypt;
 
 use Exception;
+use SilverStripe\ORM\DataList;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\FormField;
 use SilverStripe\Forms\TextField;
 use ParagonIE\CipherSweet\BlindIndex;
+use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\Queries\SQLSelect;
 use ParagonIE\CipherSweet\EncryptedField;
 use SilverStripe\ORM\FieldType\DBComposite;
@@ -36,7 +39,7 @@ class EncryptedDBField extends DBComposite
     private static $domain_size = 127;
 
     /**
-     * @param array
+     * @var array<string,string>
      */
     private static $composite_db = array(
         "Value" => "Varchar(191)",
@@ -98,6 +101,8 @@ class EncryptedDBField extends DBComposite
     }
 
     /**
+     * @param mixed $value
+     * @param bool $markChanged
      * @return $this
      */
     public function setValueField($value, $markChanged = true)
@@ -114,6 +119,8 @@ class EncryptedDBField extends DBComposite
     }
 
     /**
+     * @param mixed $value
+     * @param bool $markChanged
      * @return $this
      */
     public function setBlindIndexField($value, $markChanged = true)
@@ -145,7 +152,7 @@ class EncryptedDBField extends DBComposite
      * This is not called anymore, we rely on saveInto for now
      * @link https://github.com/silverstripe/silverstripe-framework/issues/8800
      * @link https://github.com/silverstripe/silverstripe-framework/pull/10913
-     * @param array $manipulation
+     * @param array<string,mixed> $manipulation
      * @return void
      */
     public function writeToManipulation(&$manipulation)
@@ -155,6 +162,7 @@ class EncryptedDBField extends DBComposite
         if ($this->value) {
             $dataForStorage = $encryptedField->prepareForStorage($this->value, $aad);
             $encryptedValue = $this->prepValueForDB($dataForStorage[0]);
+            /** @var array<string,string> $blindIndexes */
             $blindIndexes = $dataForStorage[1];
         } else {
             $encryptedValue = null;
@@ -169,6 +177,7 @@ class EncryptedDBField extends DBComposite
 
     /**
      * @param SQLSelect $query
+     * @return void
      */
     public function addToQuery(&$query)
     {
@@ -186,7 +195,7 @@ class EncryptedDBField extends DBComposite
      */
     public function getSearchValue($val, $indexSuffix = null)
     {
-        if (!$this->tableName && $this->record) {
+        if (!$this->tableName && $this->record && is_object($this->record)) {
             $this->tableName = DataObject::getSchema()->tableName(get_class($this->record));
         }
         if (!$this->tableName) {
@@ -211,7 +220,7 @@ class EncryptedDBField extends DBComposite
      *
      * @param string $val The unencrypted value
      * @param string $indexSuffix The blind index. Defaults to full index
-     * @return array
+     * @return array<string,string>
      */
     public function getSearchParams($val, $indexSuffix = null)
     {
@@ -230,7 +239,7 @@ class EncryptedDBField extends DBComposite
      */
     public function fetchDataList($val, $indexSuffix = null)
     {
-        if (!$this->record) {
+        if (!$this->record || !is_object($this->record)) {
             throw new Exception("No record set for this field");
         }
         if (!$indexSuffix) {
@@ -334,6 +343,7 @@ class EncryptedDBField extends DBComposite
     }
 
     /**
+     * @param array<string,mixed> $options
      * @return string
      */
     public function Nice($options = array())
@@ -379,6 +389,7 @@ class EncryptedDBField extends DBComposite
         if ($this->value) {
             $dataForStorage = $encryptedField->prepareForStorage($this->value, $aad);
             $encryptedValue = $this->prepValueForDB($dataForStorage[0]);
+            /** @var array<string,string> $blindIndexes */
             $blindIndexes = $dataForStorage[1];
         } else {
             $encryptedValue = null;
@@ -400,6 +411,7 @@ class EncryptedDBField extends DBComposite
 
     /**
      * @param string $title Optional. Localized title of the generated instance
+     * @param array<mixed> $params
      * @return FormField
      */
     public function scaffoldFormField($title = null, $params = null)
