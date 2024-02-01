@@ -306,7 +306,7 @@ protected function writeBaseRecord($baseTable, $now)
 
 # Compatibility
 
-Tested with 4.6 to 4.12 but should work with 4.4+
+Tested with SilverStripe 5+
 
 # Maintainer
 
