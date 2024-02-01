@@ -143,6 +143,7 @@ class EncryptedDBField extends DBComposite
         }
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
 
+        //TODO: review how naming is done (see: getEncryptedRow)
         // fieldName needs to match exact db name for row rotator to work properly
         $fieldName = $this->name . self::VALUE_SUFFIX;
         $indexName = $this->name . self::INDEX_SUFFIX;

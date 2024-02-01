@@ -2,10 +2,10 @@
 
 namespace LeKoala\Encrypt\Test;
 
-use SilverStripe\Assets\File;
 use SilverStripe\Dev\TestOnly;
 use ParagonIE\ConstantTime\Hex;
 use SilverStripe\ORM\DataObject;
+use SilverStripe\Security\Member;
 
 /**
  * @property string $EncryptionKey
@@ -13,8 +13,14 @@ use SilverStripe\ORM\DataObject;
  */
 class Test_EncryptionKey extends DataObject implements TestOnly
 {
+    /**
+     * @var string
+     */
     private static $table_name = 'EncryptionKey';
 
+    /**
+     * @var array<string,string>
+     */
     private static $db = [
         // A 256 bit key (32 bytes = 32*8)
         // 32 bytes = 64 chars in hex (eg using bin2hex)
@@ -25,17 +31,24 @@ class Test_EncryptionKey extends DataObject implements TestOnly
         "PublicKey" => 'Varchar',
     ];
 
+    /**
+     * @var array<string,string>
+     */
     private static $has_one = [
-        "Member" => File::class,
+        "Member" => Member::class,
     ];
 
-    public static function getForMember($ID)
+    public static function getForMember(int $ID): ?string
     {
         $rec = self::get()->filter('MemberID', $ID)->first();
         return $rec->EncryptionKey ?? null;
     }
 
-    public static function getKeyPair($ID)
+    /**
+     * @param integer $ID
+     * @return array<string,string>|null
+     */
+    public static function getKeyPair(int $ID): ?array
     {
         $rec = self::get()->filter('MemberID', $ID)->first();
         if ($rec) {
@@ -44,6 +57,6 @@ class Test_EncryptionKey extends DataObject implements TestOnly
                 'secret' => Hex::decode($rec->SecretKey),
             ];
         }
-        return false;
+        return null;
     }
 }

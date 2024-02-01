@@ -35,8 +35,14 @@ class Test_EncryptedModel extends DataObject implements TestOnly
 {
     use HasEncryptedFields;
 
+    /**
+     * @var string
+     */
     private static $table_name = 'EncryptedModel';
 
+    /**
+     * @var array<string,string>
+     */
     private static $db = [
         "Name" => 'Varchar',
         "MyText" => EncryptedDBText::class,
@@ -48,6 +54,9 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "MyEncryptedJson" => EncryptedDBJson::class . "(['map' => '7551830f{\"fields\":{\"$6e616d65\":\"string\",\"$616374697665\":\"bool\",\"$616765\":\"int\"}}'])",
     ];
 
+    /**
+     * @var array<string,string>
+     */
     private static $has_one = [
         "RegularFile" => File::class,
         // We use regular File class for encrypted files to keep only one table
@@ -56,12 +65,20 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "Member" => Member::class,
     ];
 
+    /**
+     * @var array<string,mixed>
+     */
     private static $indexes = [
         'MyIndexedVarcharBlindIndex' => true,
         'MyNumberBlindIndex' => true,
         'MyNumberLastFourBlindIndex' => true,
     ];
 
+    /**
+     * @param string $baseTable
+     * @param string $now
+     * @return void
+     */
     protected function writeBaseRecord($baseTable, $now)
     {
         parent::writeBaseRecord($baseTable, $now);

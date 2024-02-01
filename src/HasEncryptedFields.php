@@ -11,6 +11,7 @@ use ParagonIE\CipherSweet\EncryptedRow;
 use SilverStripe\ORM\FieldType\DBField;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
+use ParagonIE\CipherSweet\EncryptedField;
 use ParagonIE\CipherSweet\KeyRotation\RowRotator;
 use ParagonIE\CipherSweet\Exception\InvalidCiphertextException;
 
@@ -147,22 +148,28 @@ trait HasEncryptedFields
         $class = get_class($this);
         $tableName = DataObject::getSchema()->tableName($class);
         $encryptedRow = new EncryptedRow($engine, $tableName);
+        $encryptedRow->setPermitEmpty(true);
+        $encryptedRow->setTypedIndexes(true);
         $encryptedFields = array_keys(EncryptHelper::getEncryptedFields($class));
         $aadSource = EncryptHelper::getAadSource();
         foreach ($encryptedFields as $field) {
             if (!empty($onlyFields) && !array_key_exists($field, $onlyFields)) {
                 continue;
             }
+            /** @var EncryptedDBField $dbField */
+            $dbField = $this->dbObject($field);
             /** @var EncryptedField $encryptedField */
-            $encryptedField = $this->dbObject($field)->getEncryptedField($engine);
+            $encryptedField = $dbField->getEncryptedField($engine);
             $blindIndexes = $encryptedField->getBlindIndexObjects();
+
+            //TODO: review how naming is done (see: EncryptedDBField)
             if (count($blindIndexes)) {
-                $encryptedRow->addTextField($field . EncryptedDBField::VALUE_SUFFIX, $aadSource);
+                $encryptedRow->addOptionalTextField($field . EncryptedDBField::VALUE_SUFFIX, $aadSource);
                 foreach ($encryptedField->getBlindIndexObjects() as $blindIndex) {
                     $encryptedRow->addBlindIndex($field . EncryptedDBField::VALUE_SUFFIX, $blindIndex);
                 }
             } else {
-                $encryptedRow->addTextField($field, $aadSource);
+                $encryptedRow->addOptionalTextField($field, $aadSource);
             }
         }
         return $encryptedRow;

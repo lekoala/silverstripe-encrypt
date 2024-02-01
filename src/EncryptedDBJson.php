@@ -221,6 +221,7 @@ class EncryptedDBJson extends EncryptedDBText
             $map = JsonFieldMap::fromString($mapString);
         }
         $encryptedField = EncryptedJsonField::create($engine, $map, $this->tableName, $this->name);
+        $encryptedField->setStrictMode(false);
         return $encryptedField;
     }
 }

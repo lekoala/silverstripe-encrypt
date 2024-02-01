@@ -27,12 +27,12 @@ class MemberKeyProvider extends MultiTenantProvider
     protected $forcedTenant;
 
     /**
-     * MemberKeyProvider constructor.
+     * MultiTenantProvider constructor.
      *
      * @param array<array-key, KeyProviderInterface> $keyProviders
      * @param array-key|null $active
      */
-    public function __construct(array $keyProviders, $active = null)
+    public function __construct(array $keyProviders, string|int|null $active = null)
     {
         if ($active === null && Security::getCurrentUser()) {
             $active = Security::getCurrentUser()->ID;
@@ -44,8 +44,9 @@ class MemberKeyProvider extends MultiTenantProvider
      * @param array-key $name
      * @return KeyProviderInterface
      * @throws CipherSweetException
+     * @psalm-suppress PossiblyNullArrayOffset
      */
-    public function getTenant($name)
+    public function getTenant(string|int $name): KeyProviderInterface
     {
         if (!array_key_exists($name, $this->tenants)) {
             throw new CipherSweetException("Tenant '{$name}' does not exist");
@@ -57,7 +58,7 @@ class MemberKeyProvider extends MultiTenantProvider
      * @return KeyProviderInterface
      * @throws CipherSweetException
      */
-    public function getActiveTenant()
+    public function getActiveTenant(): KeyProviderInterface
     {
         if ($this->forcedTenant) {
             return $this->tenants[$this->forcedTenant];
@@ -74,9 +75,9 @@ class MemberKeyProvider extends MultiTenantProvider
 
     /**
      * @param array-key $index
-     * @return self
+     * @return static
      */
-    public function setActiveTenant($index)
+    public function setActiveTenant(string|int $index): static
     {
         if (!$index && Security::getCurrentUser()) {
             $index = Security::getCurrentUser();
@@ -110,17 +111,17 @@ class MemberKeyProvider extends MultiTenantProvider
      *
      * @param array<string,mixed> $row
      * @param string $tableName
-     * @return string|int|null
+     * @return string|int
      *
      * @throws CipherSweetException
      */
-    public function getTenantFromRow(array $row, $tableName)
+    public function getTenantFromRow(array $row, string $tableName): string|int
     {
         // Expect member bound encryption to have a Member relation
         if (isset($row['MemberID'])) {
             return $row['MemberID'];
         }
-        return $this->active;
+        return $this->active ?? 0;
     }
 
     /**
@@ -132,7 +133,7 @@ class MemberKeyProvider extends MultiTenantProvider
      * @param string $tableName
      * @return array<string,mixed>
      */
-    public function injectTenantMetadata(array $row, $tableName)
+    public function injectTenantMetadata(array $row, string $tableName): array
     {
         // If our class uses encryption per user, inject member id
         $row['MemberID'] = $this->active;

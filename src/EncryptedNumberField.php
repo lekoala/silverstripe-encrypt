@@ -18,6 +18,8 @@ use ParagonIE\CipherSweet\Transformation\LastFourDigits;
  */
 class EncryptedNumberField extends EncryptedDBField
 {
+    const SHORT_INDEX_SUFFIX = "LastFourBlindIndex";
+
     /**
      * @var array<string,string>
      */
@@ -73,10 +75,11 @@ class EncryptedNumberField extends EncryptedDBField
         $lastFourIndexSize = $this->getLastFourIndexSize(self::SMALL_INDEX_SIZE);
         $indexSize = $this->getIndexSize(self::LARGE_INDEX_SIZE);
 
+        //TODO: review how naming is done (see: getEncryptedRow)
         // fieldName needs to match exact db name for row rotator to work properly
         $fieldName = $this->name . self::VALUE_SUFFIX;
         $indexName = $this->name . self::INDEX_SUFFIX;
-        $shortIndexName = $this->name . "LastFourBlindIndex";
+        $shortIndexName = $this->name . self::SHORT_INDEX_SUFFIX;
 
         $encryptedField = (new EncryptedField($engine, $this->tableName, $fieldName))
             ->addBlindIndex(new BlindIndex($shortIndexName, [new LastFourDigits()], $lastFourIndexSize, $fashHash))
@@ -87,8 +90,8 @@ class EncryptedNumberField extends EncryptedDBField
     public function addToQuery(&$query)
     {
         parent::addToQuery($query);
-        $query->selectField(sprintf('"%sValue"', $this->name));
-        $query->selectField(sprintf('"%sBlindIndex"', $this->name));
-        $query->selectField(sprintf('"%sLastFourBlindIndex"', $this->name));
+        $query->selectField(sprintf('"%s' . self::VALUE_SUFFIX . '"', $this->name));
+        $query->selectField(sprintf('"%s' . self::INDEX_SUFFIX . '"', $this->name));
+        $query->selectField(sprintf('"%s' . self::SHORT_INDEX_SUFFIX . '"', $this->name));
     }
 }

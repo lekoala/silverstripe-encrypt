@@ -100,6 +100,7 @@ trait HasBaseEncryption
                 $engine = EncryptHelper::getEngineForEncryption($encryption);
                 $oldEncryptedField = $this->getEncryptedField($engine);
                 $decrypted = $oldEncryptedField->decryptValue($value, $aad);
+                // this could throw another error that won't be catched if the old configuration is invalid
             } else {
                 $decrypted = $value;
             }
