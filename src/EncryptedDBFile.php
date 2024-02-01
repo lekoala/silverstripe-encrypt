@@ -78,7 +78,7 @@ class EncryptedDBFile extends DataExtension
             }
         }
         if ($write) {
-            if ($this->owner->hasExtension(Versioned::class)) {
+            if (class_exists(Versioned::class) && $this->owner->hasExtension(Versioned::class)) {
                 $this->owner->writeWithoutVersion();
             } else {
                 $this->owner->write();

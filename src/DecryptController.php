@@ -31,7 +31,7 @@ class DecryptController extends Controller
 
         /** @var File|null $File */
         $File = File::get()->byID($ID);
-        if (!$File && $sendDraft) {
+        if (!$File && $sendDraft && class_exists(Versioned::class)) {
             /** @var File|null $File */
             $File = Versioned::get_one_by_stage(File::class, Versioned::DRAFT, "ID = " . $ID);
         }
