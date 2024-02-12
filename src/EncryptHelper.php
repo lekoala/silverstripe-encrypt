@@ -558,11 +558,14 @@ class EncryptHelper
     }
 
     /**
-     * @param string $value
+     * @param ?string $value
      * @return ?string
      */
     public static function getEncryption($value)
     {
+        if (!$value) {
+            return null;
+        }
         if (self::isBoring($value)) {
             return self::BORING;
         }
