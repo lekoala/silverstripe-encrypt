@@ -87,11 +87,15 @@ class EncryptedNumberField extends EncryptedDBField
         return $encryptedField;
     }
 
-    public function addToQuery(&$query)
-    {
-        parent::addToQuery($query);
-        $query->selectField(sprintf('"%s' . self::VALUE_SUFFIX . '"', $this->name));
-        $query->selectField(sprintf('"%s' . self::INDEX_SUFFIX . '"', $this->name));
-        $query->selectField(sprintf('"%s' . self::SHORT_INDEX_SUFFIX . '"', $this->name));
-    }
+    /**
+     * @param SQLSelect $query
+     * @return void
+     */
+    // public function addToQuery(&$query)
+    // {
+    //     parent::addToQuery($query);
+    //     $query->selectField(sprintf('"%s' . self::VALUE_SUFFIX . '"', $this->name));
+    //     $query->selectField(sprintf('"%s' . self::INDEX_SUFFIX . '"', $this->name));
+    //     $query->selectField(sprintf('"%s' . self::SHORT_INDEX_SUFFIX . '"', $this->name));
+    // }
 }

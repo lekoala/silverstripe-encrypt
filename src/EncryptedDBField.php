@@ -184,12 +184,12 @@ class EncryptedDBField extends DBComposite
      * @param SQLSelect $query
      * @return void
      */
-    public function addToQuery(&$query)
-    {
-        parent::addToQuery($query);
-        $query->selectField(sprintf('"%s' . self::VALUE_SUFFIX . '"', $this->name));
-        $query->selectField(sprintf('"%s' . self::INDEX_SUFFIX . '"', $this->name));
-    }
+    // public function addToQuery(&$query)
+    // {
+    //     parent::addToQuery($query);
+    //     $query->selectField(sprintf('"%s' . self::VALUE_SUFFIX . '"', $this->name));
+    //     $query->selectField(sprintf('"%s' . self::INDEX_SUFFIX . '"', $this->name));
+    // }
 
     /**
      * Return the blind index value to search in the database
