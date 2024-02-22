@@ -4,6 +4,7 @@ namespace LeKoala\Encrypt;
 
 use ParagonIE\CipherSweet\BlindIndex;
 use ParagonIE\CipherSweet\CipherSweet;
+use SilverStripe\ORM\Queries\SQLSelect;
 use ParagonIE\CipherSweet\EncryptedField;
 use ParagonIE\CipherSweet\Transformation\LastFourDigits;
 
