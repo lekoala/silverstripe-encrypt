@@ -114,9 +114,13 @@ private static $db = [
 # Fast hashes
 
 By default, this module doesn't enable fast hash indexes. If you expect to do a lot of queries on large table,
-you need to enable it.
+you need to enable it. **Make sure to run this after #encrypt to override set yml configuration in the module**.
 
 ```yml
+---
+After:
+  - '#encrypt'
+---
 LeKoala\Encrypt\EncryptHelper:
   fasthash: true
 ```
