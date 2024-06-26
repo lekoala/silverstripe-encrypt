@@ -50,6 +50,7 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "MyVarchar" => EncryptedDBVarchar::class,
         "MyNumber" => EncryptedNumberField::class . '(["output_size" => 4, "domain_size" => 10])',
         "MyIndexedVarchar" => EncryptedDBField::class,
+        "MyNullIndexedVarchar" => EncryptedDBField::class,
         "MyJson" => EncryptedDBJson::class,
         "MyEncryptedJson" => EncryptedDBJson::class . "(['map' => '7551830f{\"fields\":{\"$6e616d65\":\"string\",\"$616374697665\":\"bool\",\"$616765\":\"int\"}}'])",
     ];

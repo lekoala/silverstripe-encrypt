@@ -88,6 +88,7 @@ class EncryptTest extends SapphireTest
             'MyHTMLText' => '<p>' . $someText . ' html</p>',
             'MyVarchar' => 'encrypted varchar value',
             'MyIndexedVarchar' => "some_searchable_value",
+            'MyNullIndexedVarchar' => null,
             'MyNumber' => "0123456789",
         ];
         $record = Test_EncryptedModel::get()->filter('Name', 'demo')->first();
@@ -1062,5 +1063,21 @@ class EncryptTest extends SapphireTest
         $blindIndex = $freshEncrField->getEncryptedField(null, true)->getBlindIndex($freshValue, 'MyIndexedVarcharBlindIndex');
         $freshRecord2 = Test_EncryptedModel::get()->filter('MyIndexedVarcharBlindIndex', $blindIndex)->first();
         $this->assertEquals($freshRecord2->ID, $freshRecord->ID);
+    }
+
+    public function testNullValue()
+    {
+        $model = $this->getTestModel();
+
+        /** @var EncryptedDBField $field */
+        $field = $model->dbObject('MyNullIndexedVarchar');
+
+        $e = null;
+        try {
+            $record = $field->fetchRecord(null);
+        } catch (Exception $e) {
+            $this->assertStringContainsString('Cannot search an empty value', $e->getMessage());
+        }
+        $this->assertNotEmpty($e);
     }
 }

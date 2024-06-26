@@ -209,6 +209,9 @@ class EncryptedDBField extends DBComposite
         if (!$this->name) {
             throw new Exception("Name not set for search value");
         }
+        if (!$val) {
+            throw new Exception("Cannot search an empty value");
+        }
         if ($indexSuffix === null) {
             $indexSuffix = self::INDEX_SUFFIX;
         }
@@ -252,10 +255,12 @@ class EncryptedDBField extends DBComposite
         }
         $class = get_class($this->record);
 
-        // A blind index can return false positives
+        // A blind index can return false positives, use fetch record to make sure you get the record baased on value
         $params = $this->getSearchParams($val, $indexSuffix);
-        $blindIndexes = $this->getEncryptedField()->getBlindIndexObjects();
-        $list = $class::get()->where($params);
+
+        /** @var DataList $list */
+        $list = $class::get();
+        $list = $list->where($params);
         return $list;
     }
 
@@ -272,12 +277,16 @@ class EncryptedDBField extends DBComposite
         $list = $this->fetchDataList($val, $indexSuffix);
         $blindIndexes = $this->getEncryptedField()->getBlindIndexObjects();
         $blindIndex = $blindIndexes[$this->name . $indexSuffix];
+
+        // We will refetch the db object based on the field name for each record
         $name = $this->name;
         /** @var DataObject $record  */
         foreach ($list as $record) {
+            /** @var EncryptedDBField $obj */
             $obj = $record->dbObject($name);
+            $objValue = $obj->getValue() ?? '';
             // Value might be transformed
-            if ($blindIndex->getTransformed($obj->getValue()) == $val) {
+            if ($blindIndex->getTransformed($objValue) == $val) {
                 return $record;
             }
         }
