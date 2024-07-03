@@ -267,9 +267,10 @@ class EncryptedDBField extends DBComposite
     /**
      * @param string $val The unencrypted value
      * @param string $indexSuffix The blind index. Defaults to full index
+     * @param string|array|null $ignoreID Allows to ignore one id or a list of ids
      * @return DataObject|false
      */
-    public function fetchRecord($val, $indexSuffix = null)
+    public function fetchRecord($val, $indexSuffix = null, $ignoreID = null)
     {
         if (!$indexSuffix) {
             $indexSuffix = self::INDEX_SUFFIX;
@@ -282,6 +283,15 @@ class EncryptedDBField extends DBComposite
         $name = $this->name;
         /** @var DataObject $record  */
         foreach ($list as $record) {
+            if ($ignoreID) {
+                if (is_array($ignoreID) && in_array($record->ID, $ignoreID)) {
+                    continue;
+                }
+                if ($record->ID == $ignoreID) {
+                    continue;
+                }
+            }
+
             /** @var EncryptedDBField $obj */
             $obj = $record->dbObject($name);
             $objValue = $obj->getValue() ?? '';

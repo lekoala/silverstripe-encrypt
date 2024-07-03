@@ -1080,4 +1080,25 @@ class EncryptTest extends SapphireTest
         }
         $this->assertNotEmpty($e);
     }
+
+    public function testIgnoreID()
+    {
+        $model = $this->getTestModel();
+
+        /** @var EncryptedDBField $field */
+        $field = $model->dbObject('MyNumber');
+
+        $record = $field->fetchRecord($model->MyNumber);
+        $this->assertNotEmpty($record);
+
+        $record2 = $field->fetchRecord($model->MyNumber, null, $model->ID);
+        $this->assertNotEquals($model->ID, $record2->ID);
+        $this->assertNotEquals($record->ID, $record2->ID);
+
+        $record3 = $field->fetchRecord($model->MyNumber, null, [$model->ID, $record2->ID]);
+        $this->assertNotEquals($model->ID, $record3->ID);
+        $this->assertNotEquals($record->ID, $record3->ID);
+        $this->assertNotEquals($record2->ID, $record3->ID);
+        $this->assertEquals($model->MyNumber, $record3->MyNumber);
+    }
 }
