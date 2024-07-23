@@ -243,9 +243,10 @@ class EncryptedDBField extends DBComposite
     /**
      * @param string $val The unencrypted value
      * @param string $indexSuffix The blind index. Defaults to full index
+     * @param ?array $where Extra where parameters
      * @return DataList
      */
-    public function fetchDataList($val, $indexSuffix = null)
+    public function fetchDataList($val, $indexSuffix = null, $where = null)
     {
         if (!$this->record || !is_object($this->record)) {
             throw new Exception("No record set for this field");
@@ -257,6 +258,9 @@ class EncryptedDBField extends DBComposite
 
         // A blind index can return false positives, use fetch record to make sure you get the record baased on value
         $params = $this->getSearchParams($val, $indexSuffix);
+        if ($where) {
+            $params = array_merge($params, $where);
+        }
 
         /** @var DataList $list */
         $list = $class::get();
@@ -268,14 +272,34 @@ class EncryptedDBField extends DBComposite
      * @param string $val The unencrypted value
      * @param string $indexSuffix The blind index. Defaults to full index
      * @param string|array|null $ignoreID Allows to ignore one id or a list of ids
+     * @param array|null Extra where parameters
      * @return DataObject|false
      */
-    public function fetchRecord($val, $indexSuffix = null, $ignoreID = null)
+    public function fetchRecord($val, $indexSuffix = null, $ignoreID = null, $where = null)
     {
         if (!$indexSuffix) {
             $indexSuffix = self::INDEX_SUFFIX;
         }
-        $list = $this->fetchDataList($val, $indexSuffix);
+
+        if ($ignoreID) {
+            if (!$where) {
+                $where = [];
+            }
+            if (is_array($ignoreID)) {
+                // Since we don't use parametrised query, make sure ids are valid ints
+                $ignoreID = array_map("intval", $ignoreID);
+                $ignoreID = implode(",", $ignoreID);
+                $where = array_merge($where, [
+                    '"ID" NOT IN (' . $ignoreID . ')'
+                ]);
+            } else {
+                $where = array_merge($where, [
+                    '"ID" != ?' => $ignoreID,
+                ]);
+            }
+        }
+
+        $list = $this->fetchDataList($val, $indexSuffix, $where);
         $blindIndexes = $this->getEncryptedField()->getBlindIndexObjects();
         $blindIndex = $blindIndexes[$this->name . $indexSuffix];
 
@@ -283,15 +307,6 @@ class EncryptedDBField extends DBComposite
         $name = $this->name;
         /** @var DataObject $record  */
         foreach ($list as $record) {
-            if ($ignoreID) {
-                if (is_array($ignoreID) && in_array($record->ID, $ignoreID)) {
-                    continue;
-                }
-                if ($record->ID == $ignoreID) {
-                    continue;
-                }
-            }
-
             /** @var EncryptedDBField $obj */
             $obj = $record->dbObject($name);
             $objValue = $obj->getValue() ?? '';
