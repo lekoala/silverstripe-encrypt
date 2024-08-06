@@ -726,9 +726,6 @@ class EncryptTest extends SapphireTest
         $this->assertFalse($encryptedFile->isEncrypted());
     }
 
-    /**
-     * @group only
-     */
     public function testMessageEncryption()
     {
         $admin = $this->getAdminMember();
@@ -794,7 +791,6 @@ class EncryptTest extends SapphireTest
 
     /**
      * @group multi-tenant
-     * @group only
      */
     public function testMultiTenantProvider()
     {
@@ -1115,5 +1111,78 @@ class EncryptTest extends SapphireTest
         $record2 = $field->fetchRecord($model->MyNumber, null, null, ["ID != ?" => $model->ID]);
         $this->assertNotEquals($model->ID, $record2->ID);
         $this->assertNotEquals($record->ID, $record2->ID);
+    }
+
+    /**
+     * @group only
+     */
+    public function testNullIndex()
+    {
+        $model = $this->getTestModel();
+
+        // $table = iterator_to_array(DB::query('SELECT * FROM EncryptedModel'));
+        /*
+            [0] => Array
+        (
+            [ID] => 1
+            [ClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
+            [LastEdited] => 2024-08-06 09:38:08
+            [Created] => 2024-08-06 09:38:08
+            [Name] => demo
+            [MyText] => nacl:J0MSRR_3SiS-EJ5MTknr4EsdYuJfPelqlOnfc86ZLRB2dAF36E73AfFI1JnQljpLKbm4z0RJ
+            [MyHTMLText] => nacl:suuecD8nfDe9znFkX9oFJgBOMNqV-WZ6E4xmmqt0hOq1HLxaZLSuNfQgKKKLl0p0mAx06JdrAW2uMBFjdA==
+            [MyVarchar] => nacl:-v5urTD97S09NPHetURc_mby2NLUq1YlJk8xfMVgzi9j6OO9vWpB9miNAegSLs_ynJByp_xFOT8jkwWovfft
+            [MyJson] =>
+            [MyEncryptedJson] =>
+            [RegularFileID] => 2
+            [EncryptedFileID] => 3
+            [EncryptedFileClassID] => 0
+            [MemberID] => 0
+            [MyNumberValue] => nacl:moucwmvVb9gABA1YfLyHQpLf_CrjJ_oH3nevNMCNI1klxu8A7B9PGTJgWfgHTctpyBQ=
+            [MyNumberBlindIndex] => 9cb2dcc9
+            [MyNumberLastFourBlindIndex] => 95a3
+            [MyIndexedVarcharValue] => nacl:UjIFz41sx7MOcUm47gX1VArpj9PbAMjytcKHA-mW_PVlc1RsOO5Sqq3d9rzpsNLHPPrdwoA169SzPIeLkw==
+            [MyIndexedVarcharBlindIndex] => f6f6771c
+            [MyNullIndexedVarcharValue] =>
+            [MyNullIndexedVarcharBlindIndex] =>
+        )
+*/
+
+        $rec = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $indexValue = $rec['MyIndexedVarcharBlindIndex'];
+        $fieldValue = $rec['MyIndexedVarcharValue'];
+        $this->assertNotEmpty($indexValue);
+
+        // some_searchable_value
+        $realValue = (string)$model->MyIndexedVarchar;
+
+        // echo "\n*** BEFORE WRITE ***\n";
+        $model->MyIndexedVarchar = null;
+        // $model->dbObject('MyIndexedVarchar')->setValue(null);
+        $model->write();
+        // echo "\n*** AFTER WRITE ***\n";
+
+        $rec2 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $indexValue2 = $rec2['MyIndexedVarcharBlindIndex'];
+        $fieldValue2 = $rec2['MyIndexedVarcharValue'];
+        $this->assertEmpty($indexValue2, "It is $indexValue2 instead of null and value is $fieldValue2. It was $indexValue with value $fieldValue.");
+
+        $model->MyIndexedVarchar = 'some_new_value';
+        // $model->dbObject('MyIndexedVarchar')->setValue(null);
+        $model->write();
+
+        $rec3 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $indexValue3 = $rec3['MyIndexedVarcharBlindIndex'];
+        $fieldValue3 = $rec3['MyIndexedVarcharValue'];
+        $this->assertNotEmpty($indexValue3);
+
+        // Make null through object
+        $model->dbObject('MyIndexedVarchar')->setValue(null);
+        $model->write();
+
+        $rec4 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $indexValue4 = $rec4['MyIndexedVarcharBlindIndex'];
+        $fieldValue4 = $rec4['MyIndexedVarcharValue'];
+        $this->assertEmpty($indexValue4);
     }
 }

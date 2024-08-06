@@ -154,7 +154,8 @@ class EncryptedDBField extends DBComposite
     }
 
     /**
-     * This is not called anymore, we rely on saveInto for now
+     * Depending on your version, this may or may not be called
+     * When not called, it works thanks to saveInto
      * @link https://github.com/silverstripe/silverstripe-framework/issues/8800
      * @link https://github.com/silverstripe/silverstripe-framework/pull/10913
      * @param array<string,mixed> $manipulation
@@ -176,7 +177,8 @@ class EncryptedDBField extends DBComposite
 
         $manipulation['fields'][$this->name . self::VALUE_SUFFIX] = $encryptedValue;
         foreach ($blindIndexes as $blindIndexName => $blindIndexValue) {
-            $manipulation['fields'][$blindIndexName] = $blindIndexValue;
+            $iv = $encryptedValue ? $blindIndexValue : null;
+            $manipulation['fields'][$blindIndexName] = $iv;
         }
     }
 
@@ -375,8 +377,18 @@ class EncryptedDBField extends DBComposite
             throw new Exception("Unexcepted value of type " . gettype($value));
         }
 
-        // Forward changes since writeToManipulation are not called
-        // $this->setValueField($value, $markChanged);
+        if (!is_scalar($value)) {
+            $value = $this->value;
+        }
+
+        // Forward changes otherwise old value may get restored from record
+        // Can also help if manipulations are not executed properly
+        $this->setValueField($value, $markChanged);
+
+        // Make sure blind index gets nullified
+        if (!$value) {
+            $this->setBlindIndexField(null);
+        }
 
         return $this;
     }
@@ -444,7 +456,8 @@ class EncryptedDBField extends DBComposite
 
         // Build blind indexes
         foreach ($blindIndexes as $blindIndexName => $blindIndexValue) {
-            $dataObject->setField($blindIndexName, $blindIndexValue);
+            $iv = $this->value ? $blindIndexValue : null;
+            $dataObject->setField($blindIndexName, $iv);
         }
     }
 
