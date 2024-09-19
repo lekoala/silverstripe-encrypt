@@ -90,6 +90,9 @@ class EncryptedDBJson extends EncryptedDBText
      */
     public function pretty()
     {
+        if (!$this->value) {
+            return '';
+        }
         $decoded = json_decode($this->value);
         if (!$decoded) {
             return json_last_error_msg();
