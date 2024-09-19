@@ -377,16 +377,12 @@ class EncryptedDBField extends DBComposite
             throw new Exception("Unexcepted value of type " . gettype($value));
         }
 
-        if (!is_scalar($value)) {
-            $value = $this->value;
-        }
+        if (!$this->value) {
+            // Forward changes otherwise old value may get restored from record
+            // Can also help if manipulations are not executed properly
+            $this->setValueField(null, $markChanged);
 
-        // Forward changes otherwise old value may get restored from record
-        // Can also help if manipulations are not executed properly
-        $this->setValueField($value, $markChanged);
-
-        // Make sure blind index gets nullified
-        if (!$value) {
+            // Make sure blind index gets nullified
             $this->setBlindIndexField(null);
         }
 
