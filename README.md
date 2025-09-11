@@ -1,18 +1,23 @@
 # SilverStripe Encrypt module
 
-![Build Status](https://github.com/lekoala/silverstripe-encrypt/actions/workflows/ci.yml/badge.svg)
-[![scrutinizer](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/)
-[![Code coverage](https://codecov.io/gh/lekoala/silverstripe-encrypt/branch/master/graph/badge.svg)](https://codecov.io/gh/lekoala/silverstripe-encrypt)
+[![Build Status](https://github.com/lekoala/silverstripe-encrypt/actions/workflows/ci.yml/badge.svg)](https://github.com/lekoala/silverstripe-encrypt/actions)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/?branch=master)
+[![Build Status](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/badges/build.png?b=master)](https://scrutinizer-ci.com/g/lekoala/silverstripe-encrypt/build-status/master)
+[![codecov.io](https://codecov.io/github/lekoala/silverstripe-encrypt/coverage.svg?branch=master)](https://codecov.io/github/lekoala/silverstripe-encrypt?branch=master)
+
+[![Latest Stable Version](https://poser.pugx.org/lekoala/silverstripe-encrypt/version)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Latest Unstable Version](https://poser.pugx.org/lekoala/silverstripe-encrypt/v/unstable)](//packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Total Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/downloads)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![License](https://poser.pugx.org/lekoala/silverstripe-encrypt/license)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Monthly Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/d/monthly)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
+[![Daily Downloads](https://poser.pugx.org/lekoala/silverstripe-encrypt/d/daily)](https://packagist.org/packages/lekoala/silverstripe-encrypt)
 
 Easily add encryption to your DataObjects. In a time of GDPR and data leaks, this module helps you to keep your data secure.
 
 This module use [ciphersweet](https://github.com/paragonie/ciphersweet) under the hood to encrypt field data
 
 Thanks to CipherSweet, your encrypted data is searchable!
-
-NOTE: Current version of this module has incompatibilities for composite fields with branch 2. Plan to rotate your values or keep using previous version.
-
-NOTE: Branch 2 of this module is not compatible with previous versions. Please use branch 1 if you need the previous encryption system.
 
 # How to use
 
@@ -25,6 +30,10 @@ ENCRYPTION_KEY='here_is_my_key'
 You can generate a key with `EncryptHelper::generateKey()`.
 
 _Make sure your key stays safe and that nobody gets access to it_
+
+# Important notice
+
+*Make sure to enable fast hashes if possible* (read more below)
 
 # How this module works
 
@@ -51,14 +60,14 @@ class MySecureObject extends DataObject
         'MyNumberLastFourBlindIndex' => true,
     ];
 
-    public function getField($field)
+    public function getField(string $field): mixed
     {
         return $this->getEncryptedField($field);
     }
 
-    public function setField($fieldName, $val)
+    public function setField(string $fieldName, mixed $value): static
     {
-        return $this->setEncryptedField($fieldName, $val);
+        return $this->setEncryptedField($fieldName, $value);
     }
 }
 ```
@@ -303,14 +312,14 @@ protected function writeBaseRecord($baseTable, $now)
 }
 ```
 
-# Todo
-
-- Figure out a way to encrypt the Email field for members
-- Fetch key from external service + cache
-
 # Compatibility
 
-Tested with SilverStripe 5+
+Tested with SilverStripe 6+
+
+For v4/5, use branch 4
+
+Branch 1 : encryption system was different, not compatible with new versions
+Branch 2 : composite fields were different, rotate your values if upgrading to new versions
 
 # Maintainer
 

@@ -12,6 +12,7 @@ use ParagonIE\CipherSweet\CipherSweet;
 use SilverStripe\ORM\Queries\SQLSelect;
 use ParagonIE\CipherSweet\EncryptedField;
 use SilverStripe\ORM\FieldType\DBComposite;
+use SilverStripe\Model\ModelData;
 
 /**
  * Value will be set on parent record through built in getField
@@ -21,10 +22,10 @@ class EncryptedDBField extends DBComposite
 {
     use HasBaseEncryption;
 
-    const LARGE_INDEX_SIZE = 32;
-    const SMALL_INDEX_SIZE = 16;
-    const VALUE_SUFFIX = "Value";
-    const INDEX_SUFFIX = "BlindIndex";
+    public const LARGE_INDEX_SIZE = 32;
+    public const SMALL_INDEX_SIZE = 16;
+    public const VALUE_SUFFIX = "Value";
+    public const INDEX_SUFFIX = "BlindIndex";
 
     /**
      * @config
@@ -41,10 +42,10 @@ class EncryptedDBField extends DBComposite
     /**
      * @var array<string,string>
      */
-    private static $composite_db = array(
+    private static $composite_db = [
         "Value" => "Varchar(191)",
         "BlindIndex" => 'Varchar(32)',
-    );
+    ];
 
     /**
      * Output size is the number of bits (not bytes) of a blind index.
@@ -64,7 +65,9 @@ class EncryptedDBField extends DBComposite
 
     /**
      * Input domain is the set of all possible distinct inputs.
-     * Eg : 4 digits have 10,000 possible values (10^4). The log (base 2) of 10,000 is 13.2877; you would want to always round up (so 14).
+     * Eg :
+     * 4 digits have 10,000 possible values (10^4).
+     * The log (base 2) of 10,000 is 13.2877; you would want to always round up (so 14).
      * @return int
      */
     public function getDomainSize()
@@ -161,7 +164,7 @@ class EncryptedDBField extends DBComposite
      * @param array<string,mixed> $manipulation
      * @return void
      */
-    public function writeToManipulation(&$manipulation)
+    public function writeToManipulation(array &$manipulation): void
     {
         $encryptedField = $this->getEncryptedField();
         $aad = $this->encryptionAad;
@@ -324,7 +327,7 @@ class EncryptedDBField extends DBComposite
         return false;
     }
 
-    public function setValue($value, $record = null, $markChanged = true)
+    public function setValue(mixed $value, null|array|ModelData $record = null, bool $markChanged = true): static
     {
         $this->setEncryptionAad($record);
 
@@ -398,20 +401,15 @@ class EncryptedDBField extends DBComposite
         return $this->getValue();
     }
 
-    /**
-     * @return boolean
-     */
-    public function exists()
+    public function exists(): bool
     {
         return strlen($this->value ?? '') > 0;
     }
 
     /**
      * This is called by getChangedFields() to check if a field is changed
-     *
-     * @return boolean
      */
-    public function isChanged()
+    public function isChanged(): bool
     {
         return $this->isChanged;
     }
@@ -425,11 +423,8 @@ class EncryptedDBField extends DBComposite
      *
      * Currently prepareManipulationTable ignores composite fields
      * so we rely on the sub field mechanisms
-     *
-     * @param DataObject $dataObject
-     * @return void
      */
-    public function saveInto($dataObject)
+    public function saveInto(ModelData $model): void
     {
         $encryptedField = $this->getEncryptedField();
         $aad = $this->encryptionAad;
@@ -448,12 +443,12 @@ class EncryptedDBField extends DBComposite
 
         // Encrypt value
         $key = $this->getName() . self::VALUE_SUFFIX;
-        $dataObject->setField($key, $encryptedValue);
+        $model->setField($key, $encryptedValue);
 
         // Build blind indexes
         foreach ($blindIndexes as $blindIndexName => $blindIndexValue) {
             $iv = $this->value ? $blindIndexValue : null;
-            $dataObject->setField($blindIndexName, $iv);
+            $model->setField($blindIndexName, $iv);
         }
     }
 
@@ -462,7 +457,7 @@ class EncryptedDBField extends DBComposite
      * @param array<mixed> $params
      * @return FormField
      */
-    public function scaffoldFormField($title = null, $params = null)
+    public function scaffoldFormField(?string $title = null, array $params = []): ?FormField
     {
         $field = TextField::create($this->getName());
         return $field;
@@ -476,7 +471,7 @@ class EncryptedDBField extends DBComposite
         return (string) $this->getValue();
     }
 
-    public function scalarValueOnly()
+    public function scalarValueOnly(): bool
     {
         return false;
     }

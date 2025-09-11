@@ -52,7 +52,7 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         "MyIndexedVarchar" => EncryptedDBField::class,
         "MyNullIndexedVarchar" => EncryptedDBField::class,
         "MyJson" => EncryptedDBJson::class,
-        "MyEncryptedJson" => EncryptedDBJson::class . "(['map' => '7551830f{\"fields\":{\"$6e616d65\":\"string\",\"$616374697665\":\"bool\",\"$616765\":\"int\"}}'])",
+        "MyEncryptedJson" => EncryptedDBJson::class . "(['map' => '7551830f{\"fields\":{\"$6e616d65\":\"string\",\"$616374697665\":\"bool\",\"$616765\":\"int\"}}'])", // phpcs:ignore
     ];
 
     /**
@@ -87,13 +87,13 @@ class Test_EncryptedModel extends DataObject implements TestOnly
         $this->resetFieldValues();
     }
 
-    public function getField($field)
+    public function getField(string $field): mixed
     {
         return $this->getEncryptedField($field);
     }
 
-    public function setField($fieldName, $val)
+    public function setField(string $fieldName, mixed $value): static
     {
-        return $this->setEncryptedField($fieldName, $val);
+        return $this->setEncryptedField($fieldName, $value);
     }
 }

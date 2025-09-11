@@ -140,7 +140,7 @@ trait HasEncryptedFields
      * @param array $onlyFields
      * @return EncryptedRow
      */
-    public function getEncryptedRow(CipherSweet $engine = null, $onlyFields = [])
+    public function getEncryptedRow(?CipherSweet $engine = null, $onlyFields = [])
     {
         if ($engine === null) {
             $engine = EncryptHelper::getCipherSweet();

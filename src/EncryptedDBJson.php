@@ -7,6 +7,8 @@ use SilverStripe\Forms\HiddenField;
 use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\JsonFieldMap;
 use ParagonIE\CipherSweet\EncryptedJsonField;
+use SilverStripe\Forms\FormField;
+use SilverStripe\Model\ModelData;
 
 /**
  * A simple extension over EncryptedDBText that supports json
@@ -20,7 +22,6 @@ use ParagonIE\CipherSweet\EncryptedJsonField;
  */
 class EncryptedDBJson extends EncryptedDBText
 {
-
     /**
      * @return ?string
      */
@@ -38,7 +39,7 @@ class EncryptedDBJson extends EncryptedDBText
      * @param string $title
      * @return HiddenField
      */
-    public function scaffoldSearchField($title = null)
+    public function scaffoldSearchField(?string $title = null): ?FormField
     {
         return HiddenField::create($this->getName());
     }
@@ -50,7 +51,7 @@ class EncryptedDBJson extends EncryptedDBText
      * @param array<mixed> $params
      * @return HiddenField
      */
-    public function scaffoldFormField($title = null, $params = null)
+    public function scaffoldFormField(?string $title = null, array $params = []): ?FormField
     {
         return HiddenField::create($this->getName());
     }
@@ -104,16 +105,12 @@ class EncryptedDBJson extends EncryptedDBText
         return $result;
     }
 
-    /**
-     * @inheritDoc
-     * @return void
-     */
-    public function saveInto($dataObject)
+    public function saveInto(ModelData $model): void
     {
         if ($this->value && is_array($this->value)) {
             $this->value = json_encode($this->value);
         }
-        parent::saveInto($dataObject);
+        parent::saveInto($model);
     }
 
     /**
@@ -150,7 +147,7 @@ class EncryptedDBJson extends EncryptedDBText
      * @param boolean $markChanged
      * @return $this
      */
-    public function setValue($value, $record = null, $markChanged = true)
+    public function setValue(mixed $value, null|array|ModelData $record = null, bool $markChanged = true): static
     {
         $this->setEncryptionAad($record);
 
@@ -176,10 +173,7 @@ class EncryptedDBJson extends EncryptedDBText
         return parent::setValue($value, $record, $markChanged);
     }
 
-    /**
-     * @inheritDoc
-     */
-    public function prepValueForDB($value)
+    public function prepValueForDB(mixed $value): array|string|null
     {
         // We need an array to encrypt
         if ($this->getJsonMap() && $value && is_string($value)) {
@@ -202,9 +196,8 @@ class EncryptedDBJson extends EncryptedDBText
 
     /**
      * We return false because we can accept array and convert it to string
-     * @return boolean
      */
-    public function scalarValueOnly()
+    public function scalarValueOnly(): bool
     {
         return false;
     }

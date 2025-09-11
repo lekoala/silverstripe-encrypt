@@ -19,16 +19,16 @@ use ParagonIE\CipherSweet\Transformation\LastFourDigits;
  */
 class EncryptedNumberField extends EncryptedDBField
 {
-    const SHORT_INDEX_SUFFIX = "LastFourBlindIndex";
+    public const SHORT_INDEX_SUFFIX = "LastFourBlindIndex";
 
     /**
      * @var array<string,string>
      */
-    private static $composite_db = array(
+    private static $composite_db = [
         "Value" => "Varchar(191)",
         "BlindIndex" => 'Varchar(32)',
         "LastFourBlindIndex" => 'Varchar(16)',
-    );
+    ];
 
     /**
      * @param int $default

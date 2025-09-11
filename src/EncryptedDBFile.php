@@ -5,12 +5,12 @@ namespace LeKoala\Encrypt;
 use Exception;
 use SilverStripe\Assets\File;
 use SilverStripe\Control\Director;
-use SilverStripe\ORM\DataExtension;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Versioned\Versioned;
 use ParagonIE\CipherSweet\CipherSweet;
 use ParagonIE\CipherSweet\EncryptedFile;
 use SilverStripe\Assets\Flysystem\FlysystemAssetStore;
+use SilverStripe\Core\Extension;
 
 /**
  * Safe and encrypted content file
@@ -18,7 +18,7 @@ use SilverStripe\Assets\Flysystem\FlysystemAssetStore;
  * @property bool $Encrypted
  * @property File&EncryptedDBFile $owner
  */
-class EncryptedDBFile extends DataExtension
+class EncryptedDBFile extends Extension
 {
     /**
      * @var EncryptedFile
@@ -155,7 +155,8 @@ class EncryptedDBFile extends DataExtension
 
         // It's not yet encrypted
         if (!$isEncrypted) {
-            // php://temp is not a file path, it's a pseudo protocol that always creates a new random temp file when used.
+            // php://temp is not a file path,
+            // it's a pseudo protocol that always creates a new random temp file when used.
             $output = fopen('php://temp', 'wb');
             if (!$output) {
                 throw new Exception("Failed to decrypt stream");

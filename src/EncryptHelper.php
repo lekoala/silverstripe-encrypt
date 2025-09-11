@@ -36,11 +36,11 @@ class EncryptHelper
 {
     use Configurable;
 
-    const DEFAULT_OUTPUT_SIZE = 15;
-    const DEFAULT_DOMAIN_SIZE = 127;
-    const BORING = "brng";
-    const MODERN = "nacl";
-    const FIPS = "fips";
+    public const DEFAULT_OUTPUT_SIZE = 15;
+    public const DEFAULT_DOMAIN_SIZE = 127;
+    public const BORING = "brng";
+    public const MODERN = "nacl";
+    public const FIPS = "fips";
 
     /**
      * @config
@@ -282,7 +282,8 @@ class EncryptHelper
     }
 
     /**
-     * Attempting to pass a key of an invalid size (i.e. not 256-bit) will result in a CryptoOperationException being thrown.
+     * Attempting to pass a key of an invalid size (i.e. not 256-bit)
+     * will result in a CryptoOperationException being thrown.
      * The recommended way to generate a key is to use this method
      *
      * @return string A 64 chars string like 4e1c44f87b4cdf21808762970b356891db180a9dd9850e7baf2a79ff3ab8a2fc

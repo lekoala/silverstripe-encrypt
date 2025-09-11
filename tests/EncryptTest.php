@@ -7,7 +7,6 @@ use SilverStripe\ORM\DB;
 use SilverStripe\Assets\File;
 use SilverStripe\ORM\DataList;
 use ParagonIE\ConstantTime\Hex;
-use SilverStripe\ORM\ArrayList;
 use SilverStripe\ORM\DataObject;
 use SilverStripe\Security\Member;
 use LeKoala\Encrypt\EncryptedFile;
@@ -19,13 +18,14 @@ use SilverStripe\Security\Security;
 use LeKoala\Encrypt\EncryptedDBJson;
 use LeKoala\Encrypt\EncryptedDBField;
 use LeKoala\Encrypt\MemberKeyProvider;
-use ParagonIE\CipherSweet\CipherSweet;
 use LeKoala\Encrypt\HasEncryptedFields;
 use ParagonIE\CipherSweet\JsonFieldMap;
 use SilverStripe\ORM\Queries\SQLSelect;
 use SilverStripe\ORM\Queries\SQLUpdate;
 use ParagonIE\CipherSweet\KeyProvider\StringProvider;
 use ParagonIE\CipherSweet\Contract\MultiTenantSafeBackendInterface;
+use PHPUnit\Framework\Attributes\Group;
+use SilverStripe\Model\List\ArrayList;
 
 /**
  * Test for Encrypt
@@ -35,8 +35,6 @@ use ParagonIE\CipherSweet\Contract\MultiTenantSafeBackendInterface;
  * You may need to run:
  * php ./framework/cli-script.php dev/build ?flush=all
  * before (remember manifest for cli is not the same...)
- *
- * @group Encrypt
  */
 class EncryptTest extends SapphireTest
 {
@@ -125,7 +123,7 @@ class EncryptTest extends SapphireTest
 
     protected function writeDataFromYml()
     {
-        $ymlParser = new Parser;
+        $ymlParser = new Parser();
         $ymlData = $ymlParser->parseFile(__DIR__ . '/EncryptTest.yml');
 
         foreach ($ymlData["LeKoala\\Encrypt\\Test\\Test_EncryptedModel"] as $name => $data) {
@@ -138,9 +136,15 @@ class EncryptTest extends SapphireTest
     protected function showAsYml($row)
     {
         $fields = [
-            'Name', 'MyText', 'MyHTMLText', 'MyVarchar',
-            'MyNumberValue', 'MyNumberBlindIndex', 'MyNumberLastFourBlindIndex',
-            'MyIndexedVarcharValue', 'MyIndexedVarcharBlindIndex'
+            'Name',
+            'MyText',
+            'MyHTMLText',
+            'MyVarchar',
+            'MyNumberValue',
+            'MyNumberBlindIndex',
+            'MyNumberLastFourBlindIndex',
+            'MyIndexedVarcharValue',
+            'MyIndexedVarcharBlindIndex'
         ];
         echo "  " . $row['Name'] . ":\n";
         foreach ($row as $k => $v) {
@@ -232,7 +236,7 @@ class EncryptTest extends SapphireTest
     }
 
     /**
-     * @return DataList|Member[]
+     * @return ArrayList<Member>
      */
     public function getAllMembers()
     {
@@ -502,28 +506,27 @@ class EncryptTest extends SapphireTest
             $this->assertTrue($model->hasEncryptedField('MyIndexedVarchar'));
         }
 
-
         // print_r($model);
         /*
-        [record:protected] => Array
-        (
-            [ClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
-            [LastEdited] => 2021-07-07 13:38:48
-            [Created] => 2021-07-07 13:38:48
-            [Name] => demo2
-            [MyText] => brng:XLzehy47IgENco4DcZj75u9D2p53UjDMCmTFGPNdmzYYxVVbDsaVWuZP1dTvIDaYagVggNAxT8S9fUTXw55VyIv6OxYJrQ==
-            [MyHTMLText] => brng:bJ-6iGa-gjl9M6-UaNvtSrRuFLwDTLC6SIekrPHTcN_nmIUaK_VEFNAGVd3q__siNsvVXLreSlunpSyJ4JmF8eyI12ltz_s-eV6WVXw=
-            [MyVarchar] => brng:qNEVUW3TS6eACSS4v1_NK0FOiG5JnbihmOHR1DU4L8Pt63OXQIJr_Kpd34J1IHaJXZWt4uuk2SZgskmvf8FrfApag_sRypca87MegXg_wQ==
-            [RegularFileID] => 0
-            [EncryptedFileID] => 0
-            [MyNumberValue] => brng:pKYd8mXDduwhudwWeoE_ByO6IkvVlykVa6h09DTYFdHcb52yA1R5yhTEqQQjz1ndADFRa9WLLM3_e1U8PfPTiP4E
-            [MyNumberBlindIndex] => a1de44f9
-            [MyNumberLastFourBlindIndex] => addb
-            [MyIndexedVarcharValue] => brng:TBD63tu-P9PluzI_zKTZ17P-4bhFvhbW7eOeSOOnDEf7n3Ytv2_52rlvGTVSJeWr5f6Z5eqrxi-RL5B6V0PrUmEqhfE2TGt-IdH5hfU=
-            [MyIndexedVarcharBlindIndex] => 216d113a
-            [ID] => 2
-            [RecordClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
-        )
+[record:protected] => Array
+(
+    [ClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
+    [LastEdited] => 2021-07-07 13:38:48
+    [Created] => 2021-07-07 13:38:48
+    [Name] => demo2
+    [MyText] => brng:XLzehy47IgENco4DcZj75u9D2p53UjDMCmTFGPNdmzYYxVVbDsaVWuZP1dTvIDaYagVggNAxT8S9fUTXw55VyIv6OxYJrQ==
+    [MyHTMLText] => brng:bJ-6iGa-gjl9M6-UaNvtSrRuFLwDTLC6SIekrPHTcN_nmIUaK_VEFNAGVd3q__siN...
+    [MyVarchar] => brng:qNEVUW3TS6eACSS4v1_NK0FOiG5JnbihmOHR1DU4L8Pt63OXQIJr_Kpd34J1IHaJXZWt....
+    [RegularFileID] => 0
+    [EncryptedFileID] => 0
+    [MyNumberValue] => brng:pKYd8mXDduwhudwWeoE_ByO6IkvVlykVa6h09DTYFdHcb52yA1R5yhTEqQQjz1ndADFRa9WLLM3_e1U8PfPTiP4E
+    [MyNumberBlindIndex] => a1de44f9
+    [MyNumberLastFourBlindIndex] => addb
+    [MyIndexedVarcharValue] => brng:TBD63tu-P9PluzI_zKTZ17P-4bhFvhbW7eOeSOOnDEf7n3Ytv2_52rl...
+    [MyIndexedVarcharBlindIndex] => 216d113a
+    [ID] => 2
+    [RecordClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
+)
         */
 
         $varcharValue = 'encrypted varchar value';
@@ -555,14 +558,14 @@ class EncryptTest extends SapphireTest
     [Created] => 2021-07-07 13:52:08
     [Name] => demo2
     [MyText] => brng:IQ-6VoXJedlAGdoCPFUVTSnipUPR4k9YSi3Ik8_oPfUmMVDhA1kgTBFdG_6k08xLhD39G0ksVD_nMtUF4Opo6Zxgkc5Qww==
-    [MyHTMLText] => brng:ATmS8Tooc0j2FN5zB8ojmhgNHD-vncvm1ljX8aF7rR6bbsD8pEwyX7BJ3mPg6WEzwyye4uriGskFy30GL9LEKsGs1hs40JJgs6rgwKA=
-    [MyVarchar] => brng:zxu2RFNjqDGV0JmxF1WPMtxDKTyfOtvVztXfbnV3aYJAzro7RwHhSs8HhasHvdPOQ2Vxi_oDieRgcE8XeP3nyoF3tYJrJp3Mo9XdYXj2tw==
+    [MyHTMLText] => brng:ATmS8Tooc0j2FN5zB8ojmhgNHD-vncvm1ljX8aF7rR6bbsD8pEwyX7BJ3mPg6WEz...
+    [MyVarchar] => brng:zxu2RFNjqDGV0JmxF1WPMtxDKTyfOtvVztXfbnV3aYJAzro7RwHhSs8HhasHvdPOQ...
     [RegularFileID] => 0
     [EncryptedFileID] => 0
     [MyNumberValue] => brng:pKYd8mXDduwhudwWeoE_ByO6IkvVlykVa6h09DTYFdHcb52yA1R5yhTEqQQjz1ndADFRa9WLLM3_e1U8PfPTiP4E
     [MyNumberBlindIndex] => a1de44f9
     [MyNumberLastFourBlindIndex] => addb
-    [MyIndexedVarcharValue] => brng:0ow_r7UD3FXYXxq7kjVzA3uY1ThFYfAWxZFAHA0aRoohLfQW_ZBa0Q8w5A3hyLJhT6djM6xR43O_jeEfP-w_fRaH3nXRI5RW7tO78JY=
+    [MyIndexedVarcharValue] => brng:0ow_r7UD3FXYXxq7kjVzA3uY1ThFYfAWxZFAHA0aRoohLfQW_ZBa0Q8w...
     [MyIndexedVarcharBlindIndex] => 216d113a
 )
 */
@@ -646,14 +649,27 @@ class EncryptTest extends SapphireTest
         $this->assertTrue($dbObj->isChanged());
         $changed = implode(", ", array_keys($model->getChangedFields()));
 
-        // Note : sometimes we keep the same dbObject, but sometimes not, therefore it's hard to compare before and after using dbObject ref
-        // $this->assertNotEquals($beforeValue->getValue(), $afterValue->getValue(), "It should not have the same value internally anymore");
-        $this->assertTrue($model->isChanged('MyIndexedVarchar'), "Field is not properly marked as changed, only have : " . $changed);
+        // Note : sometimes we keep the same dbObject, but sometimes not,
+        // therefore it's hard to compare before and after using dbObject ref
+        // $this->assertNotEquals($beforeValue->getValue(), $afterValue->getValue(),
+        // "It should not have the same value internally anymore");
+        $this->assertTrue(
+            $model->isChanged('MyIndexedVarchar'),
+            "Field is not properly marked as changed, only have : " . $changed
+        );
         $this->assertEquals('new_value', $dbObj->getValue());
-        $this->assertNotEquals('new_value', $modelFields['MyIndexedVarcharValue'] ?? "", "Unencrypted value is not set on value field");
+        $this->assertNotEquals(
+            'new_value',
+            $modelFields['MyIndexedVarcharValue'] ?? "",
+            "Unencrypted value is not set on value field"
+        );
 
         // Somehow this is not working on travis? composite fields don't save encrypted data although it works locally
-        $this->assertNotEquals("some_searchable_value", $dbRecord['MyIndexedVarcharValue'], "Data is not encrypted in the database");
+        $this->assertNotEquals(
+            "some_searchable_value",
+            $dbRecord['MyIndexedVarcharValue'],
+            "Data is not encrypted in the database"
+        );
 
         // if we load again ?
         // it should work thanks to our trait
@@ -760,13 +776,19 @@ class EncryptTest extends SapphireTest
         $message = 'hello';
         // 24
         $nonce = random_bytes(SODIUM_CRYPTO_BOX_NONCEBYTES);
-        $encryption_key = sodium_crypto_box_keypair_from_secretkey_and_publickey($adminKeys['secret'], $user1Keys['public']);
+        $encryption_key = sodium_crypto_box_keypair_from_secretkey_and_publickey(
+            $adminKeys['secret'],
+            $user1Keys['public']
+        );
         $encrypted = sodium_crypto_box($message, $nonce, $encryption_key);
         $this->assertNotEmpty($encrypted);
         $this->assertNotEquals($message, $encrypted);
 
         // Revert keys to decrypt
-        $decryption_key = sodium_crypto_box_keypair_from_secretkey_and_publickey($user1Keys['secret'], $adminKeys['public']);
+        $decryption_key = sodium_crypto_box_keypair_from_secretkey_and_publickey(
+            $user1Keys['secret'],
+            $adminKeys['public']
+        );
         $decrypted = sodium_crypto_box_open($encrypted, $nonce, $decryption_key);
         $this->assertNotEmpty($decrypted);
         $this->assertEquals($message, $decrypted);
@@ -789,9 +811,7 @@ class EncryptTest extends SapphireTest
         return $provider;
     }
 
-    /**
-     * @group multi-tenant
-     */
+    #[Group('multi-tenant')]
     public function testMultiTenantProvider()
     {
         // echo '<pre>';
@@ -885,9 +905,7 @@ class EncryptTest extends SapphireTest
         EncryptHelper::clearCipherSweet();
     }
 
-    /**
-     * @group aad
-     */
+    #[Group('aad')]
     public function testAad()
     {
         $new = $this->getNewTestModel();
@@ -1056,7 +1074,7 @@ class EncryptTest extends SapphireTest
         /** @var EncryptedDBField $freshEncrField */
         $freshEncrField = $freshRecord->dbObject('MyIndexedVarchar');
 
-        $blindIndex = $freshEncrField->getEncryptedField(null, true)->getBlindIndex($freshValue, 'MyIndexedVarcharBlindIndex');
+        $blindIndex = $freshEncrField->getEncryptedField(null, true)->getBlindIndex($freshValue, 'MyIndexedVarcharBlindIndex'); // phpcs:ignore
         $freshRecord2 = Test_EncryptedModel::get()->filter('MyIndexedVarcharBlindIndex', $blindIndex)->first();
         $this->assertEquals($freshRecord2->ID, $freshRecord->ID);
     }
@@ -1113,42 +1131,39 @@ class EncryptTest extends SapphireTest
         $this->assertNotEquals($record->ID, $record2->ID);
     }
 
-    /**
-     * @group only
-     */
     public function testNullIndex()
     {
         $model = $this->getTestModel();
 
         // $table = iterator_to_array(DB::query('SELECT * FROM EncryptedModel'));
         /*
-            [0] => Array
-        (
-            [ID] => 1
-            [ClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
-            [LastEdited] => 2024-08-06 09:38:08
-            [Created] => 2024-08-06 09:38:08
-            [Name] => demo
-            [MyText] => nacl:J0MSRR_3SiS-EJ5MTknr4EsdYuJfPelqlOnfc86ZLRB2dAF36E73AfFI1JnQljpLKbm4z0RJ
-            [MyHTMLText] => nacl:suuecD8nfDe9znFkX9oFJgBOMNqV-WZ6E4xmmqt0hOq1HLxaZLSuNfQgKKKLl0p0mAx06JdrAW2uMBFjdA==
-            [MyVarchar] => nacl:-v5urTD97S09NPHetURc_mby2NLUq1YlJk8xfMVgzi9j6OO9vWpB9miNAegSLs_ynJByp_xFOT8jkwWovfft
-            [MyJson] =>
-            [MyEncryptedJson] =>
-            [RegularFileID] => 2
-            [EncryptedFileID] => 3
-            [EncryptedFileClassID] => 0
-            [MemberID] => 0
-            [MyNumberValue] => nacl:moucwmvVb9gABA1YfLyHQpLf_CrjJ_oH3nevNMCNI1klxu8A7B9PGTJgWfgHTctpyBQ=
-            [MyNumberBlindIndex] => 9cb2dcc9
-            [MyNumberLastFourBlindIndex] => 95a3
-            [MyIndexedVarcharValue] => nacl:UjIFz41sx7MOcUm47gX1VArpj9PbAMjytcKHA-mW_PVlc1RsOO5Sqq3d9rzpsNLHPPrdwoA169SzPIeLkw==
-            [MyIndexedVarcharBlindIndex] => f6f6771c
-            [MyNullIndexedVarcharValue] =>
-            [MyNullIndexedVarcharBlindIndex] =>
-        )
+[0] => Array
+(
+    [ID] => 1
+    [ClassName] => LeKoala\Encrypt\Test\Test_EncryptedModel
+    [LastEdited] => 2024-08-06 09:38:08
+    [Created] => 2024-08-06 09:38:08
+    [Name] => demo
+    [MyText] => nacl:J0MSRR_3SiS-EJ5MTknr4EsdYuJfPelqlOnfc86ZLRB2dAF36E73AfFI1JnQljpLKbm4z0RJ
+    [MyHTMLText] => nacl:suuecD8nfDe9znFkX9oFJgBOMNqV-WZ6E4xmmqt0hOq1HLxaZLSuNfQgKKKLl0p0mAx06JdrAW2uMBFjdA==
+    [MyVarchar] => nacl:-v5urTD97S09NPHetURc_mby2NLUq1YlJk8xfMVgzi9j6OO9vWpB9miNAegSLs_ynJByp_xFOT8jkwWovfft
+    [MyJson] =>
+    [MyEncryptedJson] =>
+    [RegularFileID] => 2
+    [EncryptedFileID] => 3
+    [EncryptedFileClassID] => 0
+    [MemberID] => 0
+    [MyNumberValue] => nacl:moucwmvVb9gABA1YfLyHQpLf_CrjJ_oH3nevNMCNI1klxu8A7B9PGTJgWfgHTctpyBQ=
+    [MyNumberBlindIndex] => 9cb2dcc9
+    [MyNumberLastFourBlindIndex] => 95a3
+    [MyIndexedVarcharValue] => nacl:UjIFz41sx7MOcUm47gX1VArpj9PbAMjytcKHA-mW_PVlc1RsOO5Sqq3d9rzpsNLHPPrdwoA169SzPIeLkw==
+    [MyIndexedVarcharBlindIndex] => f6f6771c
+    [MyNullIndexedVarcharValue] =>
+    [MyNullIndexedVarcharBlindIndex] =>
+)
 */
 
-        $rec = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $rec = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record(); // phpcs:ignore
         $indexValue = $rec['MyIndexedVarcharBlindIndex'];
         $fieldValue = $rec['MyIndexedVarcharValue'];
         $this->assertNotEmpty($indexValue);
@@ -1162,16 +1177,16 @@ class EncryptTest extends SapphireTest
         $model->write();
         // echo "\n*** AFTER WRITE ***\n";
 
-        $rec2 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $rec2 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record(); // phpcs:ignore
         $indexValue2 = $rec2['MyIndexedVarcharBlindIndex'];
         $fieldValue2 = $rec2['MyIndexedVarcharValue'];
-        $this->assertEmpty($indexValue2, "It is $indexValue2 instead of null and value is $fieldValue2. It was $indexValue with value $fieldValue.");
+        $this->assertEmpty($indexValue2, "It is $indexValue2 instead of null and value is $fieldValue2. It was $indexValue with value $fieldValue."); // phpcs:ignore
 
         $model->MyIndexedVarchar = 'some_new_value';
         // $model->dbObject('MyIndexedVarchar')->setValue(null);
         $model->write();
 
-        $rec3 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $rec3 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record(); // phpcs:ignore
         $indexValue3 = $rec3['MyIndexedVarcharBlindIndex'];
         $fieldValue3 = $rec3['MyIndexedVarcharValue'];
         $this->assertNotEmpty($indexValue3);
@@ -1180,7 +1195,7 @@ class EncryptTest extends SapphireTest
         $model->dbObject('MyIndexedVarchar')->setValue(null);
         $model->write();
 
-        $rec4 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record();
+        $rec4 = DB::query('SELECT MyIndexedVarcharValue, MyIndexedVarcharBlindIndex FROM EncryptedModel WHERE ID = ' . $model->ID)->record(); // phpcs:ignore
         $indexValue4 = $rec4['MyIndexedVarcharBlindIndex'];
         $fieldValue4 = $rec4['MyIndexedVarcharValue'];
         $this->assertEmpty($indexValue4);

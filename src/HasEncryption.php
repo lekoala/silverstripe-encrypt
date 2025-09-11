@@ -2,6 +2,8 @@
 
 namespace LeKoala\Encrypt;
 
+use SilverStripe\Model\ModelData;
+
 /**
  * This trait allow encryption for fields that don't
  * require a blind index
@@ -16,7 +18,7 @@ trait HasEncryption
      * @param string $value
      * @return string
      */
-    public function prepValueForDB($value)
+    public function prepValueForDB(mixed $value): array|string|null
     {
         if (!$value) {
             if ($this->getNullifyEmpty() || $value === null) {
@@ -33,7 +35,7 @@ trait HasEncryption
         return $encryptedValue;
     }
 
-    public function setValue($value, $record = null, $markChanged = true)
+    public function setValue(mixed $value, null|array|ModelData $record = null, bool $markChanged = true): static
     {
         $this->setEncryptionAad($record);
 

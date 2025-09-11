@@ -21,15 +21,12 @@ use ParagonIE\CipherSweet\KeyProvider\MultiTenantProvider;
  */
 class MemberKeyProvider extends MultiTenantProvider
 {
-    /**
-     * @var int
-     */
-    protected $forcedTenant;
+    protected ?int $forcedTenant = null;
 
     /**
      * MultiTenantProvider constructor.
      *
-     * @param array<array-key, KeyProviderInterface> $keyProviders
+     * @param array<array-key,KeyProviderInterface> $keyProviders
      * @param array-key|null $active
      */
     public function __construct(array $keyProviders, string|int|null $active = null)
@@ -86,19 +83,12 @@ class MemberKeyProvider extends MultiTenantProvider
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getForcedTenant()
+    public function getForcedTenant(): ?int
     {
         return $this->forcedTenant;
     }
 
-    /**
-     * @param int $index
-     * @return self
-     */
-    public function setForcedTenant($index)
+    public function setForcedTenant(?int $index): self
     {
         $this->forcedTenant = $index;
         return $this;
