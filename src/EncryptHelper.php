@@ -36,11 +36,11 @@ class EncryptHelper
 {
     use Configurable;
 
-    const DEFAULT_OUTPUT_SIZE = 15;
-    const DEFAULT_DOMAIN_SIZE = 127;
-    const BORING = "brng";
-    const MODERN = "nacl";
-    const FIPS = "fips";
+    public const DEFAULT_OUTPUT_SIZE = 15;
+    public const DEFAULT_DOMAIN_SIZE = 127;
+    public const BORING = "brng";
+    public const MODERN = "nacl";
+    public const FIPS = "fips";
 
     /**
      * @config

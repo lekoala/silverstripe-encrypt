@@ -2,8 +2,6 @@
 
 namespace LeKoala\Encrypt\Test;
 
-require_once __DIR__ . '/Test_UnreadableAfterEncryptFile.php';
-
 use Exception;
 use SilverStripe\ORM\DB;
 use SilverStripe\Assets\File;
@@ -53,6 +51,13 @@ class EncryptTest extends SapphireTest
         Test_EncryptionKey::class,
         Test_UnreadableAfterEncryptFile::class,
     ];
+
+    public static function setUpBeforeClass(): void
+    {
+        require_once __DIR__ . '/Test_UnreadableAfterEncryptFile.php';
+
+        parent::setUpBeforeClass();
+    }
 
     public function setUp(): void
     {

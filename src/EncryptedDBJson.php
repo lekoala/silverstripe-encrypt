@@ -20,7 +20,6 @@ use ParagonIE\CipherSweet\EncryptedJsonField;
  */
 class EncryptedDBJson extends EncryptedDBText
 {
-
     /**
      * @return ?string
      */

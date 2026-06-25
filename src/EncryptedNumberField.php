@@ -19,7 +19,7 @@ use ParagonIE\CipherSweet\Transformation\LastFourDigits;
  */
 class EncryptedNumberField extends EncryptedDBField
 {
-    const SHORT_INDEX_SUFFIX = "LastFourBlindIndex";
+    public const SHORT_INDEX_SUFFIX = "LastFourBlindIndex";
 
     /**
      * @var array<string,string>

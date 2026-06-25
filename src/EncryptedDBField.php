@@ -21,10 +21,10 @@ class EncryptedDBField extends DBComposite
 {
     use HasBaseEncryption;
 
-    const LARGE_INDEX_SIZE = 32;
-    const SMALL_INDEX_SIZE = 16;
-    const VALUE_SUFFIX = "Value";
-    const INDEX_SUFFIX = "BlindIndex";
+    public const LARGE_INDEX_SIZE = 32;
+    public const SMALL_INDEX_SIZE = 16;
+    public const VALUE_SUFFIX = "Value";
+    public const INDEX_SUFFIX = "BlindIndex";
 
     /**
      * @config
