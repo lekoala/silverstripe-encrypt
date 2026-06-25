@@ -167,13 +167,42 @@ class EncryptedDBFile extends DataExtension
             // dont forget to rewind the stream !
             rewind($output);
 
+            $originalFile = $this->owner->File->getValue();
+
             // This is really ugly, see https://github.com/silverstripe/silverstripe-assets/issues/467
             $configFlag = FlysystemAssetStore::config()->keep_empty_dirs;
-            Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', true);
-            $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename());
+            try {
+                Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', true);
+                $fileResult = $this->owner->setFromStream($output, $this->owner->getFilename());
+            } finally {
+                Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', $configFlag);
+            }
+
+            if (empty($fileResult['Filename']) || empty($fileResult['Hash'])) {
+                $this->owner->File->setValue($originalFile);
+                $this->owner->setFilename($originalFile['Filename'] ?? '');
+                throw new Exception("Failed to store encrypted file");
+            }
+
+            $writtenStream = $this->owner->getStream();
+            if (!$writtenStream) {
+                $this->owner->File->setValue($originalFile);
+                $this->owner->setFilename($originalFile['Filename'] ?? '');
+                throw new Exception("Failed to read encrypted file after write");
+            }
+
+            $writtenIsEncrypted = $encFile->isStreamEncrypted($writtenStream);
+            if (is_resource($writtenStream)) {
+                fclose($writtenStream);
+            }
+            if (!$writtenIsEncrypted) {
+                $this->owner->File->setValue($originalFile);
+                $this->owner->setFilename($originalFile['Filename'] ?? '');
+                throw new Exception("Stored file is not encrypted");
+            }
+
             // Mark as encrypted in db
             $this->updateEncryptionStatus(true, $write);
-            Config::modify()->set(FlysystemAssetStore::class, 'keep_empty_dirs', $configFlag);
 
             return true;
         }

@@ -2,6 +2,8 @@
 
 namespace LeKoala\Encrypt\Test;
 
+require_once __DIR__ . '/Test_UnreadableAfterEncryptFile.php';
+
 use Exception;
 use SilverStripe\ORM\DB;
 use SilverStripe\Assets\File;
@@ -49,6 +51,7 @@ class EncryptTest extends SapphireTest
     protected static $extra_dataobjects = [
         Test_EncryptedModel::class,
         Test_EncryptionKey::class,
+        Test_UnreadableAfterEncryptFile::class,
     ];
 
     public function setUp(): void
@@ -125,7 +128,7 @@ class EncryptTest extends SapphireTest
 
     protected function writeDataFromYml()
     {
-        $ymlParser = new Parser;
+        $ymlParser = new Parser();
         $ymlData = $ymlParser->parseFile(__DIR__ . '/EncryptTest.yml');
 
         foreach ($ymlData["LeKoala\\Encrypt\\Test\\Test_EncryptedModel"] as $name => $data) {
@@ -724,6 +727,35 @@ class EncryptTest extends SapphireTest
         // No file => no encryption
         $encryptedFile2->deleteFile();
         $this->assertFalse($encryptedFile->isEncrypted());
+    }
+
+    public function testFileEncryptionRestoresOriginalFileWhenEncryptedWriteCannotBeRead()
+    {
+        $file = Test_UnreadableAfterEncryptFile::create();
+        $file->setFromString('Some invoice content', 'invoice-failure.pdf');
+        $file->write();
+
+        $originalFile = $file->File->getValue();
+
+        try {
+            $file->encryptFileIfNeeded();
+            $this->fail('Expected encrypted file read verification to fail.');
+        } catch (Exception $exception) {
+            $this->assertSame('Failed to read encrypted file after write', $exception->getMessage());
+        }
+
+        $this->assertSame($originalFile['Filename'], $file->getFilename());
+        $this->assertSame($originalFile['Hash'], $file->getHash());
+        $this->assertSame($originalFile['Variant'] ?? '', $file->getVariant());
+        $this->assertFalse((bool)$file->Encrypted);
+        $this->assertSame(2, $file->getStreamReadCount());
+
+        $file->write();
+        $reloadedFile = File::get()->byID($file->ID);
+
+        $this->assertSame($originalFile['Filename'], $reloadedFile->getFilename());
+        $this->assertSame($originalFile['Hash'], $reloadedFile->getHash());
+        $this->assertFalse((bool)$reloadedFile->Encrypted);
     }
 
     public function testMessageEncryption()
